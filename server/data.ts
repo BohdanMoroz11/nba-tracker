@@ -283,6 +283,7 @@ export async function getTeam(teamId: string): Promise<TeamDetail> {
 
   return {
     team: teamRef(t, { record: overall?.summary }),
+    season: currentLabel,
     standing: t.standingSummary?.replace(/(Conference) Division$/, "$1"),
     conference,
     coach: roster.coach?.[0] ? `${roster.coach[0].firstName} ${roster.coach[0].lastName}` : undefined,

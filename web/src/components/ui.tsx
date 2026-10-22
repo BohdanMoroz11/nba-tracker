@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { injuryTone } from "../lib";
 
 export function SectionTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
@@ -64,6 +64,45 @@ export function ImportanceBar({ value, color }: { value: number; color: string }
   return (
     <div className="h-1 w-full overflow-hidden rounded-full bg-line" title={`Importance ${value}/100 (minutes, production, role, salary)`}>
       <div className="h-full rounded-full" style={{ width: `${Math.max(value, 3)}%`, background: color }} />
+    </div>
+  );
+}
+
+export function Modal({ onClose, label, className = "", children }: { onClose: () => void; label: string; className?: string; children: ReactNode }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center sm:p-6" role="dialog" aria-modal="true" aria-label={label}>
+      <button className="absolute inset-0 bg-black/65" onClick={onClose} aria-label="Close" />
+      <div className={`modal-in relative flex h-full w-full flex-col overflow-hidden bg-court shadow-2xl sm:h-auto sm:max-h-[90dvh] sm:rounded-2xl sm:border sm:border-line ${className}`}>
+        <button onClick={onClose} className="absolute right-3 top-3 z-10 rounded-full bg-black/50 px-3 py-1 text-sm hover:bg-black/70">
+          Close
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export function Segmented<T extends string>({
+  value, onChange, options, className = "",
+}: { value: T; onChange: (v: T) => void; options: { value: T; label: ReactNode }[]; className?: string }) {
+  return (
+    <div className={`inline-flex rounded-lg bg-panel p-0.5 ${className}`} role="tablist">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          role="tab"
+          aria-selected={o.value === value}
+          onClick={() => onChange(o.value)}
+          className={`rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${o.value === value ? "bg-panel-2 text-ink shadow" : "text-mute hover:text-ink"}`}
+        >
+          {o.label}
+        </button>
+      ))}
     </div>
   );
 }

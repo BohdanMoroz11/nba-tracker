@@ -1,14 +1,13 @@
 # Courtside
 
-A personal second-screen app for watching NBA games. Pick tonight's game and see:
+A personal second-screen app for watching NBA games. Pick tonight's game and get a one-screen dashboard (no scrolling) with:
 
-- **Matchup header**: score or tip-off time in your timezone, live status, ESPN's win probability, betting favorite, season series, TV channel, arena.
-- **Team primer** (each side): one-line identity, a rough "what are they aiming for" label, this season's record and standing, last season's record, seed and playoff result, coach, titles, a short history paragraph with legends and rivals, and the latest ESPN headlines.
-- **Injury report** for the game: who's out or day-to-day, what the injury is, expected return.
-- **Roster ranked by importance**: stars get big cards, key players medium cards, the rest a compact list. Each player shows number, headshot, position, per-game stats, salary and injury status. During and after a game, each player's line from that game shows up too.
-- **Player sheet** (click anyone): bio, draft, contract, honors, career path across teams, season-by-season stats, recent games, the latest Rotowire note and news.
+- **Header**: score or tip-off time in your timezone, live status, ESPN's win probability, betting favorite, season series, TV channel.
+- **Each team side by side**: name, a rough "what are they aiming for" label, record and standing, last season's record and playoff result. **About** opens a modal with facts, a short history, legends and rivals, news and the injury report.
+- **Full roster ranked by importance**, grouped into stars, key players, rotation and bench, with jersey number, headshot, minutes, points, rebounds, assists, salary and injury status. One toggle switches every row between last season, this season and this game's box score (live during the game).
+- **Player modal** (click anyone), with tabs: overview (bio, contract, injury detail, latest Rotowire note, honors, career path), season-by-season stats, recent games and news.
 
-Works from a narrow side window up to full screen.
+Works from a narrow side window (one team at a time, with a switcher) up to full screen.
 
 ## Run it
 

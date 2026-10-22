@@ -133,3 +133,19 @@ export function injuryTone(status?: string) {
   if (!status) return undefined;
   return /out|injured reserve|suspen/i.test(status) ? "out" : "doubt";
 }
+
+/** Which numbers the roster tables show: a season's per-game averages, or this game's box score. */
+export type StatMode = "last" | "current" | "tonight";
+
+/** Track an element's height, so layouts can fit content to the viewport instead of scrolling. */
+export function useHeight<T extends HTMLElement>() {
+  const [el, ref] = useState<T | null>(null);
+  const [h, setH] = useState(0);
+  useEffect(() => {
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setH(e.contentRect.height));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [el]);
+  return [ref, h] as const;
+}

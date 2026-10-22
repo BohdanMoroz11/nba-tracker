@@ -79,3 +79,13 @@ body {
 .live-dot {
   animation: pulse-dot 1.4s ease-in-out infinite;
 }
+
+@keyframes modal-in {
+  from {
+    transform: translateY(8px) scale(0.99);
+    opacity: 0;
+  }
+}
+.modal-in {
+  animation: modal-in 160ms ease-out;
+}

@@ -132,6 +132,7 @@ export interface Lore {
 
 export interface TeamDetail {
   team: TeamRef;
+  season: string; // current season label, "2026-27"
   standing?: string; // "3rd in Atlantic Division"
   conference?: string;
   coach?: string;

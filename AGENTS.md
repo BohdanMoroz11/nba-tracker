@@ -35,7 +35,8 @@ data/lore.json   Hand-written team history keyed by ESPN abbreviation (BOS, GS, 
 web/src/
   lib.ts         Query hooks, hash router, formatting, team-color helpers
   styles.css     Design tokens (Tailwind @theme) and the few custom classes
-  components/    GamesPage, GamePage (+ header), TeamColumn, Roster, PlayerSheet, ui
+  components/    GamesPage, GamePage (header + layout), TeamPanel (team strip + fit-to-height roster),
+                 TeamModal, PlayerModal, ui (Modal, Segmented, pills...)
 docs/data-sources.md  ESPN endpoints we use and what's in them
 ```
 
@@ -54,16 +55,21 @@ docs/data-sources.md  ESPN endpoints we use and what's in them
 
 Direction: "broadcast tale of the tape". Dark arena base (`#0F1622`), each team brings its own color (there's no house accent color). Fonts: **Big Shoulders Display** (names, numbers, scores) + **Figtree** (body), from Google Fonts.
 
-- The one loud element is the **giant outlined jersey number** (`.jersey-ghost`) behind players. Don't add more decoration elsewhere.
+- Jersey numbers are the signature: big display-font numbers in team color on every roster row, and the giant outlined number (`.jersey-ghost`) in the player modal. Don't add more decoration elsewhere.
 - Team colors: use `accent()` for text/strokes on dark (handles black teams like BKN/SA) and `tint()` for backgrounds.
-- **Responsive via container queries** (`@container`, `@4xl:` etc.), not just viewport breakpoints, because the app often lives in a narrow side window. Below `@4xl` the game page shows one team at a time with a switcher; above it, the two teams sit side by side.
+- **The game page must fit the viewport with no page scroll.** This is the owner's #1 UI requirement: everything visible at a glance while watching. Detail goes into modals and tabs (team "About" modal, player modal with tabs), never into a longer page.
+  - `TeamPanel`'s roster measures its own height (`useHeight`) and `fit()` keeps as many players as fit, in importance order, with fixed row heights per tier (`ROW_H`). Anything left goes behind a "+N more" row that opens a modal. If you change row markup, keep `ROW_H` in sync.
+  - Injuries show inline as a pill (or a dot when narrow) on the player row, with details in the tooltip, team modal and player modal.
+  - One stats toggle (last season / this season / this game) drives both rosters; it defaults to "this game" once a game has started, otherwise last season until players have ~8 games.
+  - Modals may scroll internally as a last resort on phones; desktop sizes are designed to fit.
+- **Responsive via container queries** (`@container`, `@4xl:` etc.), not just viewport breakpoints, because the app often lives in a narrow side window. Below `@4xl` the game page shows one team at a time with a switcher; above it, the two teams sit side by side. Check at 1440×820, 1280×720, 480×860 and 390×760.
 - Copy: plain sentence case, explain things for a casual fan, no jargon without context.
 
 ## Conventions
 
 - Match the existing style: small files, functional components, Tailwind classes inline, minimal comments explaining *why*.
 - Run `npm run typecheck` and `npm run build` before committing.
-- To eyeball UI: run `npm start`, then screenshot with Playwright at ~1440px, ~480px (side window) and 390px (phone).
+- To eyeball UI: run `npm start`, then screenshot with Playwright at the sizes above and check `document.documentElement.scrollHeight` equals the viewport height on the game page.
 
 ## AI (not in v1, here's the research)
 
