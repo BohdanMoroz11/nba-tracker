@@ -4,7 +4,7 @@ import { rankRoster } from "./importance.ts";
 import lore from "../data/lore.json" with { type: "json" };
 import type {
   BoxLine, GameCard, GameDetail, GameLogEntry, Injury, LastSeason, Lore, NewsItem,
-  PlayerDetail, RosterPlayer, StatLine, TeamDetail, TeamRef,
+  PlayerDetail, RecentResult, RosterPlayer, StatLine, TeamDetail, TeamRef, TeamStatRow,
 } from "../shared/types.ts";
 
 const num = (v: unknown) => {
@@ -134,13 +134,102 @@ export async function getGame(id: string): Promise<GameDetail> {
       ? { home: num(pred.homeTeam.gameProjection), away: num(pred.awayTeam.gameProjection) }
       : undefined,
     series: series ? `${series.summary || series.seriesScore}` : undefined,
-    preview: s.article?.headline ? { headline: s.article.headline, description: s.article.description } : undefined,
+    preview: s.article?.headline ? { headline: s.article.headline, description: s.article.description, ...parsePreview(s.article.story) } : undefined,
+    lastFive: lastFiveOf(s.lastFiveGames),
     injuries,
     box,
   };
 }
 
+function lastFiveOf(teams: any[] = []): Record<string, RecentResult[]> {
+  const out: Record<string, RecentResult[]> = {};
+  for (const t of teams) {
+    out[String(t.team.id)] = (t.events ?? [])
+      .map((e: any) => ({ result: e.gameResult, opponent: e.opponent?.abbreviation, atVs: e.atVs, score: e.score, date: e.gameDate }))
+      .sort((a: RecentResult, b: RecentResult) => a.date.localeCompare(b.date));
+  }
+  return out;
+}
+
+/** The AP preview is boilerplate text: pull out "BOTTOM LINE" and the team paragraphs that follow it. */
+function parsePreview(story?: string): { bottomLine?: string; paragraphs: string[] } {
+  if (!story) return { paragraphs: [] };
+  const paras = story
+    .replace(/<[^>]+>/g, "")
+    .split(/\n\s*\n/)
+    .map((p) => p.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const i = paras.findIndex((p) => p.startsWith("BOTTOM LINE:"));
+  if (i < 0) return { paragraphs: [] };
+  const paragraphs: string[] = [];
+  for (const p of paras.slice(i + 1)) {
+    if (/^(INJURIES|TOP PERFORMERS|LAST 10 GAMES|-{3,}|The Associated Press)/.test(p)) break;
+    paragraphs.push(p);
+  }
+  return { bottomLine: paras[i].replace("BOTTOM LINE:", "").trim(), paragraphs };
+}
+
 // ---------- teams ----------
+
+/** "4× MVP, 1× Finals MVP, 21× All-NBA": the honors a casual fan recognizes, merged and ordered. */
+function honorsSummary(awards: any[] = []): string | undefined {
+  const groups: [string, RegExp][] = [
+    ["MVP", /^MVP$/],
+    ["Finals MVP", /^Finals MVP$/],
+    ["DPOY", /Defensive Player of the Year/],
+    ["All-NBA", /^All-NBA/],
+    ["All-Defense", /^All-Defensive/],
+    ["ROY", /^Rookie of the Year$/],
+    ["6th Man", /Sixth Man/],
+    ["Most Improved", /Most Improved/],
+    ["Clutch POY", /Clutch Player/],
+  ];
+  const parts: string[] = [];
+  for (const [label, re] of groups) {
+    const n = awards.filter((a) => re.test(a.name)).reduce((sum, a) => sum + (parseInt(a.displayCount) || 1), 0);
+    if (n) parts.push(`${n}× ${label}`);
+  }
+  return parts.length ? parts.join(", ") : undefined;
+}
+
+/** Team stats with league ranks. ESPN ranks most stats; points allowed and differential we rank from standings. */
+async function teamStatsFor(teamId: string, year: number): Promise<TeamDetail["stats"]> {
+  const [d, standings] = await Promise.all([espn.teamStats(teamId, year).catch(() => null), espn.standings(year).catch(() => null)]);
+  if (!d?.splits) return undefined;
+  const cats: any[] = d.splits.categories ?? [];
+  const find = (cat: string, name: string) => cats.find((c) => c.name === cat)?.stats.find((x: any) => x.name === name);
+  const rankOf = (x: any) => (x?.rankDisplayValue ? parseInt(String(x.rankDisplayValue).replace(/\D+/g, "")) || undefined : undefined);
+
+  const entries = (standings?.children ?? []).flatMap((c: any) => c.standings.entries);
+  const sv = (e: any, n: string) => num(e.stats.find((x: any) => x.name === n)?.value);
+  const mine = entries.find((e: any) => String(e.team.id) === teamId);
+  const rankBy = (n: string, lowerIsBetter: boolean) => {
+    if (!mine) return undefined;
+    const v = sv(mine, n);
+    return 1 + entries.filter((e: any) => (lowerIsBetter ? sv(e, n) < v : sv(e, n) > v)).length;
+  };
+
+  const rows: TeamStatRow[] = [];
+  const add = (key: string, label: string, value: unknown, rank?: number, digits = 1, suffix = "") => {
+    const v = num(value);
+    if (!v && v !== 0) return;
+    rows.push({ key, label, value: v, display: `${v > 0 && key === "diff" ? "+" : ""}${v.toFixed(digits)}${suffix}`, rank });
+  };
+  add("ppg", "Points scored", find("offensive", "avgPoints")?.value, rankOf(find("offensive", "points")));
+  if (mine) {
+    add("papg", "Points allowed", sv(mine, "avgPointsAgainst"), rankBy("avgPointsAgainst", true));
+    add("diff", "Point margin", sv(mine, "differential"), rankBy("differential", false));
+  }
+  add("pace", "Pace", find("offensive", "paceFactor")?.value, rankOf(find("offensive", "paceFactor")));
+  add("fg", "Field goal %", find("offensive", "fieldGoalPct")?.value, rankOf(find("offensive", "fieldGoalPct")));
+  add("3p", "3-point %", find("offensive", "threePointPct")?.value, rankOf(find("offensive", "threePointPct")));
+  add("ast", "Assists", find("offensive", "avgAssists")?.value, rankOf(find("offensive", "assists")));
+  add("reb", "Rebound share %", find("general", "reboundRate")?.value, rankOf(find("general", "reboundRate")));
+  add("stl", "Steals", find("defensive", "avgSteals")?.value, rankOf(find("defensive", "steals")));
+  add("blk", "Blocks", find("defensive", "avgBlocks")?.value, rankOf(find("defensive", "blocks")));
+  add("tov", "Turnovers", find("offensive", "avgTotalTurnovers")?.value);
+  return { season: seasonLabel(year), rows };
+}
 
 function parseStatSeasons(stats: any): { seasons: StatLine[]; career?: StatLine } {
   const avg = stats?.categories?.find((c: any) => c.name === "averages");
@@ -154,14 +243,17 @@ function parseStatSeasons(stats: any): { seasons: StatLine[]; career?: StatLine 
     };
   };
   const teams = stats.teams ?? {};
+  // Traded players get one row per team plus a combined row without a teamId; we label that one "TOT".
   const seasons = (avg.statistics ?? []).map((s: any) =>
-    toLine(s.stats, s.season.displayName, teams[s.teamSlug]?.abbreviation ?? s.teamSlug),
+    toLine(s.stats, s.season.displayName, s.teamId ? (teams[s.teamSlug]?.abbreviation ?? s.teamSlug) : "TOT"),
   );
   return { seasons, career: avg.totals ? toLine(avg.totals, "Career") : undefined };
 }
 
 /** Combine split rows (traded mid-season) into one line per season, weighted by games. */
 function seasonLine(seasons: StatLine[], season: string): StatLine | undefined {
+  const total = seasons.find((s) => s.season === season && s.team === "TOT");
+  if (total) return total;
   const rows = seasons.filter((s) => s.season === season);
   if (rows.length <= 1) return rows[0];
   const gp = rows.reduce((a, r) => a + r.gp, 0) || 1;
@@ -232,7 +324,7 @@ function outlookFor(last?: LastSeason): TeamDetail["outlook"] {
   return { label: "Rebuilding", reason };
 }
 
-function toRosterPlayer(a: any, seasons: StatLine[], currentLabel: string, lastLabel: string): Omit<RosterPlayer, "importance" | "tier"> {
+function toRosterPlayer(a: any, seasons: StatLine[], ov: any, currentLabel: string, lastLabel: string): Omit<RosterPlayer, "importance" | "tier"> {
   return {
     id: String(a.id),
     name: a.displayName,
@@ -250,6 +342,8 @@ function toRosterPlayer(a: any, seasons: StatLine[], currentLabel: string, lastL
     salary: a.contract?.salary || undefined,
     contractYearsLeft: a.contract?.yearsRemaining,
     injuryStatus: a.injuries?.[0]?.status,
+    honors: honorsSummary(ov?.awards),
+    note: ov?.rotowire?.headline,
     current: seasonLine(seasons, currentLabel),
     last: seasonLine(seasons, lastLabel),
   };
@@ -268,10 +362,13 @@ export async function getTeam(teamId: string): Promise<TeamDetail> {
   const lastLabel = seasonLabel(currentYear - 1);
 
   const athletes: any[] = roster.athletes ?? [];
-  const statsList = await mapLimit(athletes, 6, (a) =>
-    espn.athleteStats(String(a.id)).then(parseStatSeasons).catch(() => ({ seasons: [] as StatLine[] })),
-  );
-  const players = athletes.map((a, i) => toRosterPlayer(a, statsList[i].seasons, currentLabel, lastLabel));
+  const [statsList, overviews] = await Promise.all([
+    mapLimit(athletes, 6, (a) =>
+      espn.athleteStats(String(a.id)).then(parseStatSeasons).catch(() => ({ seasons: [] as StatLine[] })),
+    ),
+    mapLimit(athletes, 6, (a) => espn.athleteOverview(String(a.id)).catch(() => null)),
+  ]);
+  const players = athletes.map((a, i) => toRosterPlayer(a, statsList[i].seasons, overviews[i], currentLabel, lastLabel));
 
   const lastSeason = await lastSeasonFor(teamId, currentYear);
   let conference: string | undefined;
@@ -280,6 +377,9 @@ export async function getTeam(teamId: string): Promise<TeamDetail> {
   }
   const overall = t.record?.items?.find((r: any) => r.type === "total") ?? t.record?.items?.[0];
   const streak = overall?.stats?.find((s: any) => s.name === "streak")?.value;
+  // This season's team stats once there's a real sample, last season's before that.
+  const gamesPlayed = num(overall?.stats?.find((s: any) => s.name === "gamesPlayed")?.value);
+  const stats = await teamStatsFor(teamId, gamesPlayed >= 10 ? currentYear : currentYear - 1);
 
   return {
     team: teamRef(t, { record: overall?.summary }),
@@ -293,6 +393,7 @@ export async function getTeam(teamId: string): Promise<TeamDetail> {
     outlook: outlookFor(lastSeason),
     lore: (lore as Record<string, Lore>)[t.abbreviation],
     news: newsItems(news.articles),
+    stats,
     roster: rankRoster(players),
   };
 }
@@ -309,7 +410,7 @@ export async function getPlayer(id: string): Promise<PlayerDetail> {
   const { seasons, career } = parseStatSeasons(stats);
 
   const teamsPath: string[] = [];
-  for (const s of seasons) if (s.team && teamsPath[teamsPath.length - 1] !== s.team) teamsPath.push(s.team);
+  for (const s of seasons) if (s.team && s.team !== "TOT" && teamsPath[teamsPath.length - 1] !== s.team) teamsPath.push(s.team);
 
   const gl = ov.gameLog;
   const recentGames: GameLogEntry[] = [];

@@ -56,10 +56,27 @@ export interface BoxLine {
 export interface GameDetail extends GameCard {
   predictor?: { home: number; away: number }; // ESPN win probability before the game, in %
   series?: string; // "Season series 0-0"
-  preview?: { headline: string; description?: string };
+  preview?: { headline: string; description?: string; bottomLine?: string; paragraphs: string[] };
+  lastFive: Record<string, RecentResult[]>; // by team id, oldest -> newest
   injuries: Record<string, Injury[]>; // by team id
   box: Record<string, BoxLine>; // by athlete id, only when live/final
   overUnder?: number;
+}
+
+export interface RecentResult {
+  result: string; // "W" / "L"
+  opponent: string; // abbreviation
+  atVs: string; // "@" / "vs"
+  score: string;
+  date: string;
+}
+
+export interface TeamStatRow {
+  key: string;
+  label: string;
+  value: number;
+  display: string;
+  rank?: number; // 1 = best in the league for this stat
 }
 
 export interface StatLine {
@@ -97,6 +114,8 @@ export interface RosterPlayer {
   salary?: number;
   contractYearsLeft?: number;
   injuryStatus?: string; // from roster, e.g. "Out"
+  honors?: string; // "4× MVP, 21× All-NBA"
+  note?: string; // latest Rotowire one-liner
   current?: StatLine; // this season
   last?: StatLine; // last season (any team)
   importance: number; // 0..100 within team
@@ -142,6 +161,7 @@ export interface TeamDetail {
   outlook: { label: string; reason: string };
   lore?: Lore;
   news: NewsItem[];
+  stats?: { season: string; rows: TeamStatRow[] }; // team stats with league ranks
   roster: RosterPlayer[]; // sorted by importance desc
 }
 

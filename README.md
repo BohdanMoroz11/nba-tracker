@@ -5,6 +5,8 @@ A personal second-screen app for watching NBA games. Pick tonight's game and get
 - **Header**: score or tip-off time in your timezone, live status, ESPN's win probability, betting favorite, season series, TV channel.
 - **Each team side by side**: name, a rough "what are they aiming for" label, record and standing, last season's record and playoff result. **About** opens a modal with facts, a short history, legends and rivals, news and the injury report.
 - **Full roster ranked by importance**, grouped into stars, key players, rotation and bench, with jersey number, headshot, minutes, points, rebounds, assists, salary and injury status. One toggle switches every row between last season, this season and this game's box score (live during the game).
+- **Matchup**: the game preview, a team-vs-team stat comparison with league ranks, each team's last 5 games and the odds. It's a middle column on wide screens, a button on medium ones, and a tab on narrow ones.
+- **Honors and the latest note** next to players ("4× MVP, 21× All-NBA", last game's line from Rotowire). More stat columns (GP, FG%, 3P%, STL, BLK) appear as the window gets wider.
 - **Player modal** (click anyone), with tabs: overview (bio, contract, injury detail, latest Rotowire note, honors, career path), season-by-season stats, recent games and news.
 
 Works from a narrow side window (one team at a time, with a switcher) up to full screen.

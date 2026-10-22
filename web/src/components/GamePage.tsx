@@ -3,14 +3,16 @@ import type { GameDetail, TeamDetail, TeamRef } from "../../../shared/types";
 import { accent, go, tint, tipTime, useGame, useTeam, type StatMode } from "../lib";
 import { TeamPanel } from "./TeamPanel";
 import { PlayerModal } from "./PlayerModal";
-import { ErrorNote, Segmented, Spinner } from "./ui";
+import { MatchupPanel } from "./MatchupPanel";
+import { ErrorNote, Modal, Segmented, Spinner } from "./ui";
 
 // A fixed-viewport dashboard: nothing on this page scrolls. Detail lives in modals.
 export function GamePage({ id, playerId }: { id: string; playerId?: string }) {
   const game = useGame(id);
   const awayTeam = useTeam(game.data?.away.id);
   const homeTeam = useTeam(game.data?.home.id);
-  const [side, setSide] = useState<"away" | "home">("away");
+  const [side, setSide] = useState<"away" | "home" | "matchup">("away");
+  const [matchupOpen, setMatchupOpen] = useState(false);
   const [mode, setMode] = useState<StatMode | null>(null);
 
   useEffect(() => setMode(null), [id]);
@@ -30,7 +32,7 @@ export function GamePage({ id, playerId }: { id: string; playerId?: string }) {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden @container">
-      <Header game={g} toggle={<Segmented value={statMode} onChange={setMode} options={modeOptions} />} />
+      <Header game={g} toggle={<Segmented value={statMode} onChange={setMode} options={modeOptions} />} onMatchup={() => setMatchupOpen(true)} />
 
       <div className="flex shrink-0 flex-wrap items-center gap-2 px-3 py-2 sm:px-4 @4xl:hidden">
         {/* Narrow: one team at a time. */}
@@ -38,23 +40,34 @@ export function GamePage({ id, playerId }: { id: string; playerId?: string }) {
           className="@4xl:hidden"
           value={side}
           onChange={setSide}
-          options={(["away", "home"] as const).map((s) => ({
-            value: s,
-            label: (
-              <span className="flex items-center gap-1.5">
-                <img src={g[s].logo} alt="" className="size-4" />
-                {g[s].name}
-              </span>
-            ),
-          }))}
+          options={[
+            ...(["away", "home"] as const).map((s) => ({
+              value: s,
+              label: (
+                <span className="flex items-center gap-1.5">
+                  <img src={g[s].logo} alt="" className="size-4" />
+                  {g[s].name}
+                </span>
+              ),
+            })),
+            { value: "matchup" as const, label: "Matchup" },
+          ]}
         />
         <div className="ml-auto">
           <Segmented value={statMode} onChange={setMode} options={modeOptions} />
         </div>
       </div>
 
-      <main className="grid min-h-0 flex-1 gap-3 px-3 pb-3 sm:px-4 @4xl:grid-cols-2 @4xl:pt-3">
-        {(["away", "home"] as const).map((s) => {
+      {/* Wide: away | matchup | home. Medium: two teams, matchup in a modal. Narrow: one tab at a time. */}
+      <main className="grid min-h-0 flex-1 gap-3 px-3 pb-3 sm:px-4 @4xl:grid-cols-2 @4xl:pt-3 @[100rem]:grid-cols-[minmax(0,1fr)_310px_minmax(0,1fr)]">
+        {(["away", "matchup", "home"] as const).map((s) => {
+          if (s === "matchup") {
+            return (
+              <div key={s} className={`min-h-0 flex-col overflow-auto rounded-xl border border-line bg-panel p-3 @[100rem]:overflow-hidden ${side === s ? "flex @4xl:hidden" : "hidden"} @[100rem]:flex`}>
+                <MatchupPanel game={g} away={awayTeam.data} home={homeTeam.data} />
+              </div>
+            );
+          }
           const q = s === "away" ? awayTeam : homeTeam;
           return (
             <div key={s} className={`min-h-0 flex-col ${side === s ? "flex" : "hidden @4xl:flex"}`}>
@@ -65,6 +78,14 @@ export function GamePage({ id, playerId }: { id: string; playerId?: string }) {
           );
         })}
       </main>
+
+      {matchupOpen && (
+        <Modal label="Matchup" onClose={() => setMatchupOpen(false)} className="sm:w-[min(520px,94vw)]">
+          <div className="min-h-0 overflow-auto p-5 pt-12">
+            <MatchupPanel game={g} away={awayTeam.data} home={homeTeam.data} />
+          </div>
+        </Modal>
+      )}
 
       {playerId && (
         <PlayerModal playerId={playerId} game={g} teams={[awayTeam.data, homeTeam.data]} onClose={() => go(`#/game/${id}`)} />
@@ -80,7 +101,7 @@ function defaultMode(g: GameDetail, teams: (TeamDetail | undefined)[]): StatMode
   return gp >= 8 ? "current" : "last";
 }
 
-function Header({ game, toggle }: { game: GameDetail; toggle: ReactNode }) {
+function Header({ game, toggle, onMatchup }: { game: GameDetail; toggle: ReactNode; onMatchup: () => void }) {
   const { away, home, state } = game;
   return (
     <header
@@ -115,7 +136,10 @@ function Header({ game, toggle }: { game: GameDetail; toggle: ReactNode }) {
           {game.odds && <span><span className="text-ink/60">Favorite </span>{game.odds}</span>}
           {game.series && game.series !== "0-0" && <span><span className="text-ink/60">Series </span>{game.series}</span>}
           {game.broadcasts.length > 0 && <span><span className="text-ink/60">On </span>{game.broadcasts.join(", ")}</span>}
-          {game.venue && <span className="hidden text-ink/60 @7xl:inline">{game.venue}</span>}
+          {game.venue && <span className="hidden text-ink/60 @[110rem]:inline">{game.venue}</span>}
+          <button onClick={onMatchup} className="hidden rounded-lg border border-white/20 px-2.5 py-1 text-sm font-medium hover:bg-black/20 @4xl:block @[100rem]:hidden">
+            Matchup
+          </button>
           <span className="hidden items-center gap-2 @4xl:flex">
             <span className="text-xs text-ink/60">Stats from</span>
             {toggle}

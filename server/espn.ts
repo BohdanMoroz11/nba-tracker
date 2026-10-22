@@ -3,6 +3,7 @@
 
 const SITE = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba";
 const STANDINGS = "https://site.api.espn.com/apis/v2/sports/basketball/nba/standings";
+const CORE = "https://sports.core.api.espn.com/v2/sports/basketball/leagues/nba";
 const ATHLETE = "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes";
 
 export const TTL = {
@@ -60,4 +61,6 @@ export const espn = {
   athlete: (id: string) => getJson(`${ATHLETE}/${id}`, TTL.long),
   athleteStats: (id: string) => getJson(`${ATHLETE}/${id}/stats`, TTL.long),
   athleteOverview: (id: string) => getJson(`${ATHLETE}/${id}/overview`, TTL.medium),
+  teamStats: (teamId: string, seasonYear: number) =>
+    getJson(`${CORE}/seasons/${seasonYear}/types/2/teams/${teamId}/statistics`, TTL.long),
 };

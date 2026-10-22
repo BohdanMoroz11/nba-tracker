@@ -16,6 +16,7 @@ export function TeamPanel({ team, game, mode }: Props) {
   const [about, setAbout] = useState(false);
   const injuries = game.injuries[team.team.id] ?? [];
   const ls = team.lastSeason;
+  const form = game.lastFive[team.team.id] ?? [];
 
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-line bg-panel @container" style={{ ["--team" as string]: color }}>
@@ -37,8 +38,27 @@ export function TeamPanel({ team, game, mode }: Props) {
                 last season <span className="text-ink">{ls.record}</span>, {ls.playoffs?.replace(/^Lost in /, "out in ")}
               </>
             )}
+            {team.coach && (
+              <span className="hidden @3xl:inline">
+                <span className="text-ink/40"> | </span>coach <span className="text-ink">{team.coach}</span>
+              </span>
+            )}
           </p>
         </div>
+        {form.length > 0 && (
+          <div className="hidden shrink-0 items-center gap-1 @2xl:flex" aria-label="Last 5 games">
+            <span className="mr-1 text-xs text-mute">Last 5</span>
+            {form.map((g) => (
+              <span
+                key={g.date}
+                title={`${g.result} ${g.atVs} ${g.opponent} ${g.score}, ${new Date(g.date).toLocaleDateString([], { month: "short", day: "numeric" })}`}
+                className={`grid size-5 place-items-center rounded text-[11px] font-bold ${g.result === "W" ? "bg-live/20 text-live" : "bg-out/20 text-out"}`}
+              >
+                {g.result}
+              </span>
+            ))}
+          </div>
+        )}
         <button onClick={() => setAbout(true)} className="shrink-0 rounded-lg border border-line px-2.5 py-1 text-sm font-medium hover:bg-panel-2">
           About
         </button>
@@ -53,7 +73,12 @@ export function TeamPanel({ team, game, mode }: Props) {
 
 // ---------- roster that fits its box ----------
 
-const ROW_H: Record<Tier, number> = { star: 48, starter: 34, rotation: 29, bench: 29 };
+// Two density levels. "Rich" adds a meta line and the latest Rotowire note to stars and key players;
+// it's used whenever the whole roster fits that way, otherwise rows fall back to compact.
+const ROW_H: Record<"rich" | "compact", Record<Tier, number>> = {
+  rich: { star: 80, starter: 46, rotation: 30, bench: 30 },
+  compact: { star: 48, starter: 34, rotation: 29, bench: 29 },
+};
 const GROUP_H = 18;
 const HEAD_H = 22;
 const MORE_H = 30;
@@ -64,15 +89,18 @@ const GROUPS: [Tier, string][] = [
   ["bench", "Bench"],
 ];
 
+type Density = keyof typeof ROW_H;
+
 /** Greedily keep the most important players that fit; the rest go behind a "more" button. */
-function fit(roster: RosterPlayer[], height: number) {
+function fit(roster: RosterPlayer[], height: number, density: Density) {
+  const rowH = ROW_H[density];
   const budget = height - HEAD_H;
   const visible: RosterPlayer[] = [];
   let used = 0;
   let lastTier: Tier | undefined;
   for (let i = 0; i < roster.length; i++) {
     const p = roster[i];
-    const cost = ROW_H[p.tier] + (p.tier !== lastTier ? GROUP_H : 0);
+    const cost = rowH[p.tier] + (p.tier !== lastTier ? GROUP_H : 0);
     const reserve = i < roster.length - 1 ? MORE_H : 0;
     if (used + cost + reserve > budget) break;
     visible.push(p);
@@ -81,8 +109,13 @@ function fit(roster: RosterPlayer[], height: number) {
   }
   const hidden = roster.slice(visible.length);
   // Spare room: let rows breathe a little instead of leaving a gap at the bottom.
-  const scale = hidden.length ? 1 : Math.min(1.35, Math.max(1, budget / Math.max(used, 1)));
-  return { visible, hidden, scale };
+  const scale = hidden.length ? 1 : Math.min(1.25, Math.max(1, budget / Math.max(used, 1)));
+  return { visible, hidden, scale, density };
+}
+
+function layout(roster: RosterPlayer[], height: number) {
+  const rich = fit(roster, height, "rich");
+  return rich.hidden.length ? fit(roster, height, "compact") : rich;
 }
 
 interface TableProps {
@@ -94,16 +127,35 @@ interface TableProps {
   bg: string;
 }
 
-const GRID =
-  "grid items-center gap-x-2 grid-cols-[1.75rem_2rem_minmax(0,1fr)_repeat(3,2.2rem)] @md:grid-cols-[2.25rem_2.5rem_minmax(0,1fr)_repeat(4,2.4rem)] @xl:grid-cols-[2.5rem_2.5rem_minmax(0,1fr)_repeat(4,2.6rem)_3.75rem]";
+// Columns appear as the panel gets wider: MIN at @md, salary at @xl, GP/FG%/3P% at @2xl, STL/BLK at @3xl.
+const GRID = [
+  "grid items-center gap-x-2 @2xl:gap-x-1.5",
+  "grid-cols-[1.75rem_2rem_minmax(0,1fr)_repeat(3,2.2rem)]",
+  "@md:grid-cols-[2.25rem_2.5rem_minmax(0,1fr)_repeat(4,2.4rem)]",
+  "@xl:grid-cols-[2.5rem_2.5rem_minmax(0,1fr)_repeat(4,2.6rem)_3.75rem]",
+  "@2xl:grid-cols-[2.25rem_2.5rem_minmax(0,1fr)_repeat(7,2.3rem)_3.5rem]",
+  "@3xl:grid-cols-[2.25rem_2.5rem_minmax(0,1fr)_repeat(9,2.3rem)_3.5rem]",
+].join(" ");
+
+const COLS: { key: string; label: string; show: string; title: string }[] = [
+  { key: "gp", label: "GP", show: "hidden @2xl:block", title: "Games played" },
+  { key: "min", label: "MIN", show: "hidden @md:block", title: "Minutes per game" },
+  { key: "pts", label: "PTS", show: "", title: "Points per game" },
+  { key: "reb", label: "REB", show: "", title: "Rebounds per game" },
+  { key: "ast", label: "AST", show: "", title: "Assists per game" },
+  { key: "stl", label: "STL", show: "hidden @3xl:block", title: "Steals per game" },
+  { key: "blk", label: "BLK", show: "hidden @3xl:block", title: "Blocks per game" },
+  { key: "fg", label: "FG%", show: "hidden @2xl:block", title: "Field goal percentage" },
+  { key: "3p", label: "3P%", show: "hidden @2xl:block", title: "3-point percentage" },
+];
 
 function RosterTable({ team, game, mode, injuries, color, bg }: TableProps) {
   const [ref, height] = useHeight<HTMLDivElement>();
   const [showMore, setShowMore] = useState(false);
-  const { visible, hidden, scale } = fit(team.roster, height);
+  const { visible, hidden, scale, density } = layout(team.roster, height);
   const injuryOf = (id: string) => injuries.find((i) => i.athleteId === id);
-  const row = (p: RosterPlayer, s: number) => (
-    <PlayerRow key={p.id} p={p} game={game} mode={mode} injury={injuryOf(p.id)} color={color} bg={bg} height={ROW_H[p.tier] * s} />
+  const row = (p: RosterPlayer, s: number, d: Density) => (
+    <PlayerRow key={p.id} p={p} game={game} mode={mode} injury={injuryOf(p.id)} color={color} bg={bg} height={ROW_H[d][p.tier] * s} rich={d === "rich"} />
   );
 
   return (
@@ -114,10 +166,9 @@ function RosterTable({ team, game, mode, injuries, color, bg }: TableProps) {
             <span className="text-right">#</span>
             <span />
             <span>Player</span>
-            <span className="hidden text-right @md:block">MIN</span>
-            <span className="text-right">PTS</span>
-            <span className="text-right">REB</span>
-            <span className="text-right">AST</span>
+            {COLS.map((c) => (
+              <span key={c.key} className={`text-right ${c.show}`} title={c.title}>{c.label}</span>
+            ))}
             <span className="hidden text-right @xl:block">Salary</span>
           </div>
           {GROUPS.map(([tier, label]) => {
@@ -128,7 +179,7 @@ function RosterTable({ team, game, mode, injuries, color, bg }: TableProps) {
                 <div className="flex items-end border-t border-line px-2 pb-0.5 text-[11px] font-semibold text-mute" style={{ height: GROUP_H }}>
                   {label}
                 </div>
-                {ps.map((p) => row(p, scale))}
+                {ps.map((p) => row(p, scale, density))}
               </div>
             );
           })}
@@ -144,10 +195,10 @@ function RosterTable({ team, game, mode, injuries, color, bg }: TableProps) {
         </>
       )}
       {showMore && (
-        <Modal label={`More ${team.team.name} players`} onClose={() => setShowMore(false)} className="@container sm:w-[min(640px,94vw)]">
+        <Modal label={`More ${team.team.name} players`} onClose={() => setShowMore(false)} className="@container sm:w-[min(900px,94vw)]">
           <div className="p-4 pt-12">
             <h2 className="mb-2 font-display text-2xl font-black">More {team.team.name} players</h2>
-            <div onClick={() => setShowMore(false)}>{hidden.map((p) => row(p, 1))}</div>
+            <div onClick={() => setShowMore(false)}>{hidden.map((p) => row(p, 1, "compact"))}</div>
           </div>
         </Modal>
       )}
@@ -155,15 +206,25 @@ function RosterTable({ team, game, mode, injuries, color, bg }: TableProps) {
   );
 }
 
-function statCells(mode: StatMode, p: RosterPlayer, box?: BoxLine): { min: string; pts: string; reb: string; ast: string; note?: string } {
+type Cells = { [col: string]: string | undefined; note?: string };
+
+function statCells(mode: StatMode, p: RosterPlayer, box?: BoxLine): Cells {
+  const empty: Cells = { gp: "", min: "", pts: "–", reb: "", ast: "", stl: "", blk: "", fg: "", "3p": "" };
   if (mode === "tonight") {
-    if (!box) return { min: "", pts: "–", reb: "", ast: "" };
-    if (box.didNotPlay) return { min: "", pts: "", reb: "", ast: "", note: "Didn't play" };
-    return { min: box.min, pts: box.pts, reb: box.reb, ast: box.ast };
+    if (!box) return empty;
+    if (box.didNotPlay) return { ...empty, pts: "", note: "Didn't play" };
+    const pct = (made: string) => {
+      const [m, a] = made.split("-").map(Number);
+      return a ? `${Math.round((m / a) * 100)}` : "";
+    };
+    return { ...empty, min: box.min, pts: box.pts, reb: box.reb, ast: box.ast, fg: pct(box.fg), "3p": pct(box.threes) };
   }
   const s: StatLine | undefined = mode === "current" ? p.current : p.last;
-  if (!s) return { min: "", pts: "–", reb: "", ast: "", note: mode === "last" && p.experience <= 1 ? "Rookie" : undefined };
-  return { min: one(s.min), pts: one(s.pts), reb: one(s.reb), ast: one(s.ast) };
+  if (!s) return { ...empty, note: mode === "last" && p.experience <= 1 ? "Rookie" : undefined };
+  return {
+    gp: String(s.gp), min: one(s.min), pts: one(s.pts), reb: one(s.reb), ast: one(s.ast),
+    stl: one(s.stl), blk: one(s.blk), fg: one(s.fgPct), "3p": one(s.threePct),
+  };
 }
 
 interface RowProps {
@@ -174,15 +235,18 @@ interface RowProps {
   color: string;
   bg: string;
   height: number;
+  rich: boolean;
 }
 
-function PlayerRow({ p, game, mode, injury, color, bg, height }: RowProps) {
+function PlayerRow({ p, game, mode, injury, color, bg, height, rich }: RowProps) {
   const star = p.tier === "star";
-  const box = game.box[p.id];
-  const c = statCells(mode, p, box);
+  const key = p.tier === "starter";
+  const c = statCells(mode, p, game.box[p.id]);
   const status = injury?.status ?? p.injuryStatus;
   const injuryText = injury && [injury.status, [injury.side, injury.type, injury.detail?.toLowerCase()].filter(Boolean).join(" ")].filter(Boolean).join(": ");
+  const main = new Set(["pts", "reb", "ast"]);
   const big = star ? "font-display text-lg font-bold @md:text-xl" : "text-sm";
+  const meta = [p.positionName, p.age && `age ${p.age}`, p.height?.replace(" ", ""), p.experience ? `${p.experience} yrs pro` : "rookie"].filter(Boolean).join(", ");
 
   return (
     <a
@@ -196,7 +260,7 @@ function PlayerRow({ p, game, mode, injury, color, bg, height }: RowProps) {
       <Headshot src={p.headshot} name={p.name} className={star ? "size-10 rounded-md bg-panel-2" : "size-8 rounded-full bg-panel-2"} />
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-1.5">
-          <span className={`truncate ${star ? "font-display text-xl font-extrabold" : "font-medium"}`}>
+          <span className={`truncate @md:shrink-0 ${star ? "font-display text-xl font-extrabold" : "font-medium"}`}>
             <span className="@md:hidden">{p.firstName?.[0]}. {p.lastName}</span>
             <span className="hidden @md:inline">{p.name}</span>
           </span>
@@ -208,17 +272,28 @@ function PlayerRow({ p, game, mode, injury, color, bg, height }: RowProps) {
             </span>
           )}
           {c.note && <span className="shrink-0 text-xs text-mute">{c.note}</span>}
+          {!star && p.honors && <span className="hidden min-w-0 truncate text-xs text-doubt/90 @lg:inline" title={p.honors}>{p.honors}</span>}
         </div>
         {star && (
           <div className="truncate text-xs text-ink/70">
-            {p.positionName}, {p.age}, {p.experience ? `${p.experience} yrs in NBA` : "rookie"}
+            {meta}
+            {p.honors && <span className="text-doubt/90">, {p.honors}</span>}
+          </div>
+        )}
+        {rich && (star || key) && p.note && (
+          <div className={`text-xs italic text-mute ${star ? "line-clamp-2" : "truncate"}`} title={p.note}>
+            {p.note}
           </div>
         )}
       </div>
-      <span className={`hidden text-right tnum text-mute @md:block ${star ? "text-sm" : "text-sm"}`}>{c.min}</span>
-      <span className={`text-right tnum font-semibold ${big}`}>{c.pts}</span>
-      <span className={`text-right tnum ${big}`}>{c.reb}</span>
-      <span className={`text-right tnum ${big}`}>{c.ast}</span>
+      {COLS.map((col) => (
+        <span
+          key={col.key}
+          className={`text-right tnum ${col.show} ${main.has(col.key) ? big : "text-sm text-mute"} ${col.key === "pts" ? "font-semibold" : ""}`}
+        >
+          {c[col.key]}
+        </span>
+      ))}
       <span className="hidden text-right text-xs tnum text-mute @xl:block">{money(p.salary) ?? ""}</span>
     </a>
   );

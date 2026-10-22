@@ -36,7 +36,8 @@ web/src/
   lib.ts         Query hooks, hash router, formatting, team-color helpers
   styles.css     Design tokens (Tailwind @theme) and the few custom classes
   components/    GamesPage, GamePage (header + layout), TeamPanel (team strip + fit-to-height roster),
-                 TeamModal, PlayerModal, ui (Modal, Segmented, pills...)
+                 MatchupPanel (preview, team stat comparison, last 5, odds), TeamModal, PlayerModal,
+                 ui (Modal, Segmented, pills...)
 docs/data-sources.md  ESPN endpoints we use and what's in them
 ```
 
@@ -49,6 +50,9 @@ docs/data-sources.md  ESPN endpoints we use and what's in them
 - Player importance (`importance.ts`): minutes + production, blending this season (weight grows to 100% by ~15 games) with last season, plus a small salary term so injured max-contract stars still rank high. Tiers: #1 is always star, #2–3 are stars if ≥85/100, then 2 more starters, 5 rotation, rest bench. Tune freely.
 - Cards headline **this season's stats once a player has 8+ games**, otherwise last season's (`headlineLine`).
 - Injury details (body part, return date) come from the game summary, not the roster.
+- Traded players: ESPN's stats have one row per team plus a combined row with no teamId; we label it `TOT` and prefer it for season lines.
+- Per-player honors ("4× MVP, 21× All-NBA", `honorsSummary`) and the latest Rotowire one-liner come from each player's `/overview`, fetched with the roster. ESPN has no All-Star selections.
+- Team stat comparison: ESPN core API `/seasons/{y}/types/2/teams/{id}/statistics` (has league ranks); points allowed and margin are ranked from standings. Uses last season until the team has 10 games.
 - Caching: scoreboard and live summary 15 s, team/news 30 min, roster and player stats 6 h, last-season data 24 h. All in memory, so a restart clears it.
 
 ## Design
@@ -56,9 +60,12 @@ docs/data-sources.md  ESPN endpoints we use and what's in them
 Direction: "broadcast tale of the tape". Dark arena base (`#0F1622`), each team brings its own color (there's no house accent color). Fonts: **Big Shoulders Display** (names, numbers, scores) + **Figtree** (body), from Google Fonts.
 
 - Jersey numbers are the signature: big display-font numbers in team color on every roster row, and the giant outlined number (`.jersey-ghost`) in the player modal. Don't add more decoration elsewhere.
-- Team colors: use `accent()` for text/strokes on dark (handles black teams like BKN/SA) and `tint()` for backgrounds.
+- Team colors: use `accent()` for text/strokes on dark (lightens the team color until it has ~3:1 contrast) and `tint()` for backgrounds.
 - **The game page must fit the viewport with no page scroll.** This is the owner's #1 UI requirement: everything visible at a glance while watching. Detail goes into modals and tabs (team "About" modal, player modal with tabs), never into a longer page.
-  - `TeamPanel`'s roster measures its own height (`useHeight`) and `fit()` keeps as many players as fit, in importance order, with fixed row heights per tier (`ROW_H`). Anything left goes behind a "+N more" row that opens a modal. If you change row markup, keep `ROW_H` in sync.
+  - **Fill the space, too.** Empty area on a big screen is wasted: as the viewport grows, show more data rather than bigger padding. Wide (≥100rem): three columns, away | matchup | home. Medium: two teams, matchup behind a header button. Narrow: tabs (away / home / matchup).
+  - Roster columns appear with panel width (MIN at `@md`, salary `@xl`, GP/FG%/3P% `@2xl`, STL/BLK `@3xl`; see `GRID`/`COLS` in `TeamPanel`).
+  - `TeamPanel`'s roster measures its own height (`useHeight`) and `layout()` picks a density: "rich" (stars/key players get meta, honors and the latest Rotowire note) if the whole roster fits that way, else "compact". `fit()` keeps players in importance order with fixed row heights per tier (`ROW_H`); anything left goes behind a "+N more" row that opens a modal. If you change row markup, keep `ROW_H` in sync.
+  - Highlighting: stars get tinted rows and bigger numbers; PTS/REB/AST are bold, secondary stats muted; honors are amber; league ranks are green (top 5) or red (bottom 5).
   - Injuries show inline as a pill (or a dot when narrow) on the player row, with details in the tooltip, team modal and player modal.
   - One stats toggle (last season / this season / this game) drives both rosters; it defaults to "this game" once a game has started, otherwise last season until players have ~8 games.
   - Modals may scroll internally as a last resort on phones; desktop sizes are designed to fit.

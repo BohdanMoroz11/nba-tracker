@@ -115,13 +115,14 @@ function lum(hex: string) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-/** A team color that is readable as text/strokes on the dark background. */
-export function accent(primary: string, alt: string) {
-  const p = primary.toLowerCase();
-  if (lum(p) > 0.05) return `#${p}`;
-  const a = alt.toLowerCase();
-  if (lum(a) > 0.05 && lum(a) < 0.8) return `#${a}`;
-  return "#aab4c3"; // black & white teams (Nets, Spurs) get a neutral silver
+/** A team color readable as text/strokes on the dark background: lightened toward white until it has ~3:1 contrast. */
+export function accent(primary: string, _alt?: string) {
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(primary.slice(i, i + 2), 16));
+  for (let t = 0; t <= 0.8; t += 0.05) {
+    const hex = [r, g, b].map((c) => Math.round(c + (255 - c) * t).toString(16).padStart(2, "0")).join("");
+    if (lum(hex) >= 0.13) return `#${hex}`;
+  }
+  return "#aab4c3";
 }
 
 /** Background tint: the raw primary color, or a lifted slate for near-black teams. */
