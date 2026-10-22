@@ -1,5 +1,7 @@
 # Courtside
 
+> ⚡ Vibe coded: agents wrote it, I steered and vibe-checked some code. Maintained to the standard of "works on my machine". Pure vibes.
+
 A personal second-screen app for watching NBA games. Pick tonight's game and get a one-screen dashboard (no scrolling) with:
 
 - **Header**: score or tip-off time in your timezone, live status, ESPN's win probability, betting favorite, season series, TV channel.
