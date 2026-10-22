@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+/* Design tokens. Dark "arena at night" base; teams bring their own color, there is no house accent. */
+@theme {
+  --color-court: #0f1622; /* page */
+  --color-panel: #18212f; /* raised surfaces */
+  --color-panel-2: #1f2a3a; /* hover / nested */
+  --color-line: #273244; /* hairlines */
+  --color-ink: #e8ecf2; /* primary text */
+  --color-mute: #8a96a8; /* secondary text */
+  --color-out: #f0646b; /* injury: out */
+  --color-doubt: #f2b84b; /* injury: day-to-day / questionable */
+  --color-live: #4ade80;
+
+  --font-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  --font-sans: "Figtree", system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-court);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Numbers line up in stat rows. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The one loud element: giant jersey numbers, drawn as outlined type behind players. */
+.jersey-ghost {
+  font-family: var(--font-display);
+  font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 2px var(--team, #fff);
+  opacity: 0.45;
+  user-select: none;
+  pointer-events: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+.sheet-in {
+  animation: sheet-in 180ms ease-out;
+}
+
+@keyframes pulse-dot {
+  50% {
+    opacity: 0.3;
+  }
+}
+.live-dot {
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}

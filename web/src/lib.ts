@@ -1,0 +1,135 @@
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import type { GameCard, GameDetail, PlayerDetail, StatLine, TeamDetail, Tier } from "../../shared/types";
+
+// ---------- data ----------
+
+async function get<T>(path: string): Promise<T> {
+  const r = await fetch(path);
+  if (!r.ok) {
+    const body = await r.json().catch(() => ({}));
+    throw new Error(body.error ?? `Request failed (${r.status})`);
+  }
+  return r.json();
+}
+
+export const useGames = () =>
+  useQuery({
+    queryKey: ["games"],
+    queryFn: () => get<{ date: string; games: GameCard[]; upcoming?: boolean }>("/api/games"),
+    refetchInterval: 30_000,
+  });
+
+export const useGame = (id: string) =>
+  useQuery({
+    queryKey: ["game", id],
+    queryFn: () => get<GameDetail>(`/api/game/${id}`),
+    refetchInterval: (q) => (q.state.data?.state === "in" ? 20_000 : 5 * 60_000),
+  });
+
+export const useTeam = (id?: string) =>
+  useQuery({
+    queryKey: ["team", id],
+    queryFn: () => get<TeamDetail>(`/api/team/${id}`),
+    enabled: !!id,
+    staleTime: 30 * 60_000,
+  });
+
+export const usePlayer = (id?: string) =>
+  useQuery({
+    queryKey: ["player", id],
+    queryFn: () => get<PlayerDetail>(`/api/player/${id}`),
+    enabled: !!id,
+    staleTime: 30 * 60_000,
+  });
+
+// ---------- routing (hash based, no dependency) ----------
+// #/                      games list
+// #/game/:id              game page
+// #/game/:id/p/:playerId  game page with player sheet open
+
+export type Route = { page: "games" } | { page: "game"; id: string; playerId?: string };
+
+function parse(hash: string): Route {
+  const m = hash.match(/^#\/game\/(\w+)(?:\/p\/(\w+))?/);
+  return m ? { page: "game", id: m[1], playerId: m[2] } : { page: "games" };
+}
+
+export function useRoute(): Route {
+  const [route, setRoute] = useState(() => parse(location.hash));
+  useEffect(() => {
+    const on = () => setRoute(parse(location.hash));
+    window.addEventListener("hashchange", on);
+    return () => window.removeEventListener("hashchange", on);
+  }, []);
+  return route;
+}
+
+export const go = (hash: string) => {
+  location.hash = hash;
+};
+
+// ---------- formatting ----------
+
+export function money(n?: number) {
+  if (!n) return undefined;
+  return n >= 1e6 ? `$${(n / 1e6).toFixed(1)}M` : `$${Math.round(n / 1e3)}K`;
+}
+
+export const one = (n?: number) => (n === undefined ? "–" : n.toFixed(1));
+
+export function tipTime(iso: string) {
+  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+export function dayLabel(ymd: string) {
+  return new Date(`${ymd}T12:00:00`).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
+}
+
+export function ordinal(n: number) {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+/** Which season line to headline: this season once it has a real sample, otherwise last season. */
+export function headlineLine(cur?: StatLine, last?: StatLine): StatLine | undefined {
+  if (cur && cur.gp >= 8) return cur;
+  return last ?? cur;
+}
+
+export const tierLabel: Record<Tier, string> = {
+  star: "Star",
+  starter: "Key player",
+  rotation: "Rotation",
+  bench: "Bench",
+};
+
+// ---------- team colors ----------
+
+function lum(hex: string) {
+  const [r, g, b] = [0, 2, 4].map((i) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/** A team color that is readable as text/strokes on the dark background. */
+export function accent(primary: string, alt: string) {
+  const p = primary.toLowerCase();
+  if (lum(p) > 0.05) return `#${p}`;
+  const a = alt.toLowerCase();
+  if (lum(a) > 0.05 && lum(a) < 0.8) return `#${a}`;
+  return "#aab4c3"; // black & white teams (Nets, Spurs) get a neutral silver
+}
+
+/** Background tint: the raw primary color, or a lifted slate for near-black teams. */
+export function tint(primary: string) {
+  return lum(primary) < 0.01 ? "#2a3240" : `#${primary}`;
+}
+
+export function injuryTone(status?: string) {
+  if (!status) return undefined;
+  return /out|injured reserve|suspen/i.test(status) ? "out" : "doubt";
+}

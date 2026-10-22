@@ -1,0 +1,242 @@
+{
+  "ATL": {
+    "founded": 1946, "formerly": "Tri-Cities Blackhawks, Milwaukee Hawks, St. Louis Hawks", "arena": "State Farm Arena",
+    "titles": [1958],
+    "nickname": "The franchise that keeps almost getting there",
+    "identity": "One of the league's oldest franchises, the Hawks won their only title in St. Louis in 1958 behind Bob Pettit. In Atlanta they've mostly been a solid playoff team without a deep run. Dominique Wilkins' dunk contests in the '80s, a surprise 60-win season in 2015 and an unexpected trip to the 2021 Eastern Conference Finals are the high points.",
+    "legends": ["Dominique Wilkins", "Bob Pettit", "Dikembe Mutombo", "Pete Maravich"],
+    "rivals": ["BOS", "NY"]
+  },
+  "BOS": {
+    "founded": 1946, "arena": "TD Garden",
+    "titles": [1957, 1959, 1960, 1961, 1962, 1963, 1964, 1965, 1966, 1968, 1969, 1974, 1976, 1981, 1984, 1986, 2008, 2024],
+    "nickname": "Banner-counting basketball royalty",
+    "identity": "The NBA's winningest franchise with 18 championships. Bill Russell's Celtics won 11 titles in 13 years, Larry Bird's '80s teams fought the Lakers for the decade, and the 2008 'Big Three' and the 2024 team added more banners. In Boston the expectation is the title, every year.",
+    "legends": ["Bill Russell", "Larry Bird", "John Havlicek", "Paul Pierce", "Bob Cousy", "Kevin McHale"],
+    "rivals": ["LAL", "PHI", "NY"]
+  },
+  "BKN": {
+    "founded": 1967, "formerly": "New Jersey Americans, New York Nets (ABA), New Jersey Nets", "arena": "Barclays Center",
+    "titles": [],
+    "nickname": "Brooklyn's team, still looking for a first NBA title",
+    "identity": "The Nets won two ABA titles with Dr. J before joining the NBA, then spent decades in New Jersey. Jason Kidd took them to two straight Finals (2002, 2003). Since moving to Brooklyn in 2012 they've been through big-name experiments (Garnett and Pierce, then Durant, Irving and Harden) that never won a title, and full rebuilds after each.",
+    "legends": ["Julius Erving", "Jason Kidd", "Vince Carter", "Dražen Petrović", "Buck Williams"],
+    "rivals": ["NY"]
+  },
+  "CHA": {
+    "founded": 1988, "formerly": "Charlotte Bobcats (2004–14)", "arena": "Spectrum Center",
+    "titles": [],
+    "nickname": "Teal, purple and a long playoff drought",
+    "identity": "The original Hornets were a '90s cult favorite (Larry Johnson, Alonzo Mourning, 5'3\" Muggsy Bogues) before moving to New Orleans. Charlotte got an expansion team, the Bobcats, in 2004, once owned by Michael Jordan, and took back the Hornets name and history in 2014. Winning a playoff series has been rare.",
+    "legends": ["Larry Johnson", "Alonzo Mourning", "Muggsy Bogues", "Kemba Walker", "Dell Curry"],
+    "rivals": ["MIA"]
+  },
+  "CHI": {
+    "founded": 1966, "arena": "United Center",
+    "titles": [1991, 1992, 1993, 1996, 1997, 1998],
+    "nickname": "Jordan's house",
+    "identity": "Michael Jordan, Scottie Pippen and coach Phil Jackson won six titles in eight years, the most famous dynasty in sports. The 1995-96 team went 72-10. Derrick Rose became the youngest MVP in 2011. Since then Chicago has been stuck in the middle of the league.",
+    "legends": ["Michael Jordan", "Scottie Pippen", "Dennis Rodman", "Derrick Rose", "Joakim Noah"],
+    "rivals": ["DET", "NY", "CLE"]
+  },
+  "CLE": {
+    "founded": 1970, "arena": "Rocket Mortgage FieldHouse",
+    "titles": [2016],
+    "nickname": "The LeBron homecoming franchise",
+    "identity": "Cleveland's identity is tied to LeBron James, the Akron kid they drafted in 2003. He left for Miami, came back, and in 2016 led a comeback from 3-1 down in the Finals against the 73-win Warriors, ending the city's 52-year championship drought. The four straight Finals against Golden State (2015–18) are their defining era.",
+    "legends": ["LeBron James", "Mark Price", "Brad Daugherty", "Zydrūnas Ilgauskas", "Kyrie Irving"],
+    "rivals": ["GS", "BOS", "CHI"]
+  },
+  "DAL": {
+    "founded": 1980, "arena": "American Airlines Center",
+    "titles": [2011],
+    "nickname": "Dirk built it",
+    "identity": "Dirk Nowitzki spent 21 seasons in Dallas and his 2011 title run over LeBron's Heat is the franchise's crowning moment. Luka Dončić took them back to the Finals in 2024, then the team traded him to the Lakers in February 2025, one of the most shocking trades in league history. Fans still haven't forgiven it.",
+    "legends": ["Dirk Nowitzki", "Jason Kidd", "Rolando Blackman", "Derek Harper", "Luka Dončić"],
+    "rivals": ["SA", "HOU", "MIA"]
+  },
+  "DEN": {
+    "founded": 1967, "formerly": "Denver Rockets (ABA)", "arena": "Ball Arena",
+    "titles": [2023],
+    "nickname": "Mile-high altitude and a passing center",
+    "identity": "Denver was a fun ABA and run-and-gun team for decades but rarely a real contender. That changed with Nikola Jokić, a second-round pick from Serbia who became a three-time MVP and led them to their first title in 2023. Playing at 5,280 feet tires out visiting teams.",
+    "legends": ["Nikola Jokić", "Alex English", "Dan Issel", "David Thompson", "Carmelo Anthony", "Dikembe Mutombo"],
+    "rivals": ["LAL", "MIN", "OKC"]
+  },
+  "DET": {
+    "founded": 1941, "formerly": "Fort Wayne Pistons", "arena": "Little Caesars Arena",
+    "titles": [1989, 1990, 2004],
+    "nickname": "Bad Boys, blue-collar defense",
+    "identity": "The 'Bad Boys' of Isiah Thomas and Bill Laimbeer won back-to-back titles with physical, sometimes dirty defense. The 2004 team won it all without a superstar, beating the Kobe and Shaq Lakers. After a long dark stretch, including a 28-game losing streak in 2023-24, Detroit rebuilt and is relevant again.",
+    "legends": ["Isiah Thomas", "Joe Dumars", "Ben Wallace", "Bill Laimbeer", "Grant Hill", "Chauncey Billups"],
+    "rivals": ["CHI", "BOS", "LAL"]
+  },
+  "GS": {
+    "founded": 1946, "formerly": "Philadelphia Warriors, San Francisco Warriors", "arena": "Chase Center",
+    "titles": [1947, 1956, 1975, 2015, 2017, 2018, 2022],
+    "nickname": "The team that changed basketball with the three",
+    "identity": "Stephen Curry's Warriors made the three-pointer the center of the modern game and won four titles between 2015 and 2022, adding Kevin Durant for two of them. They set the regular-season record (73-9) in 2016 and then blew a 3-1 Finals lead to Cleveland. Earlier history includes Wilt Chamberlain's 100-point game, which he scored as a Philadelphia Warrior.",
+    "legends": ["Stephen Curry", "Wilt Chamberlain", "Rick Barry", "Klay Thompson", "Chris Mullin", "Draymond Green"],
+    "rivals": ["CLE", "LAL", "HOU"]
+  },
+  "HOU": {
+    "founded": 1967, "formerly": "San Diego Rockets", "arena": "Toyota Center",
+    "titles": [1994, 1995],
+    "nickname": "Clutch City",
+    "identity": "Hakeem Olajuwon led back-to-back titles in the '90s while Jordan was away. Yao Ming made Houston huge in China. James Harden's analytics-driven teams took nearly every shot as a three or a layup and came within one game of the 2018 Finals. After a rebuild they're a young, defense-first team again.",
+    "legends": ["Hakeem Olajuwon", "Yao Ming", "Moses Malone", "Clyde Drexler", "James Harden", "Calvin Murphy"],
+    "rivals": ["SA", "DAL", "GS"]
+  },
+  "IND": {
+    "founded": 1967, "formerly": "ABA Pacers", "arena": "Gainbridge Fieldhouse",
+    "titles": [],
+    "nickname": "Basketball-crazy Indiana, still chasing an NBA ring",
+    "identity": "The Pacers dominated the ABA with three titles but have none in the NBA. Reggie Miller's late-game shooting against the Knicks is their lore. They reached the Finals in 2000 and again in 2025, when they took OKC to Game 7 but lost after Tyrese Haliburton tore his Achilles in that game.",
+    "legends": ["Reggie Miller", "Mel Daniels", "Jermaine O'Neal", "Rik Smits", "George McGinnis"],
+    "rivals": ["NY", "CHI", "MIA"]
+  },
+  "LAC": {
+    "founded": 1970, "formerly": "Buffalo Braves, San Diego Clippers", "arena": "Intuit Dome",
+    "titles": [],
+    "nickname": "LA's other team",
+    "identity": "For decades the Clippers were the league's punchline. 'Lob City' with Chris Paul and Blake Griffin made them fun, and owner Steve Ballmer has spent big since, bringing in Kawhi Leonard and Paul George and building his own arena, the Intuit Dome. They've never reached the Finals.",
+    "legends": ["Chris Paul", "Blake Griffin", "Bob McAdoo", "Elton Brand", "DeAndre Jordan"],
+    "rivals": ["LAL"]
+  },
+  "LAL": {
+    "founded": 1947, "formerly": "Minneapolis Lakers", "arena": "Crypto.com Arena",
+    "titles": [1949, 1950, 1952, 1953, 1954, 1972, 1980, 1982, 1985, 1987, 1988, 2000, 2001, 2002, 2009, 2010, 2020],
+    "nickname": "Hollywood's glamour franchise",
+    "identity": "17 titles across every era: George Mikan in Minneapolis, Jerry West and Wilt, 'Showtime' with Magic and Kareem, the Shaq and Kobe three-peat, Kobe's two with Pau Gasol, and LeBron's 2020 bubble title. Stars want to play here, and anything short of a title counts as a failure. Their rivalry with Boston is the league's oldest grudge.",
+    "legends": ["Magic Johnson", "Kareem Abdul-Jabbar", "Kobe Bryant", "Shaquille O'Neal", "Jerry West", "LeBron James"],
+    "rivals": ["BOS", "LAC", "DEN"]
+  },
+  "MEM": {
+    "founded": 1995, "formerly": "Vancouver Grizzlies", "arena": "FedExForum",
+    "titles": [],
+    "nickname": "Grit and Grind",
+    "identity": "Born in Vancouver and moved to Memphis in 2001. The 'Grit and Grind' era (Marc Gasol, Zach Randolph, Tony Allen, Mike Conley) won with physical defense and made the 2013 Western Conference Finals. Since then they've been a young, loud team that talks a lot of trash.",
+    "legends": ["Marc Gasol", "Zach Randolph", "Tony Allen", "Mike Conley", "Pau Gasol"],
+    "rivals": ["GS", "LAC"]
+  },
+  "MIA": {
+    "founded": 1988, "arena": "Kaseya Center",
+    "titles": [2006, 2012, 2013],
+    "nickname": "Heat Culture",
+    "identity": "Pat Riley built a famously demanding culture: the fittest players, the hardest workers, no excuses. Dwyane Wade and Shaq won in 2006; then LeBron's 'Decision' to join Wade and Bosh produced four straight Finals and two titles. They regularly beat bigger-name teams in the playoffs, like reaching the 2023 Finals as an 8th seed.",
+    "legends": ["Dwyane Wade", "Alonzo Mourning", "LeBron James", "Udonis Haslem", "Chris Bosh", "Tim Hardaway"],
+    "rivals": ["NY", "BOS", "CHI"]
+  },
+  "MIL": {
+    "founded": 1968, "arena": "Fiserv Forum",
+    "titles": [1971, 2021],
+    "nickname": "The Greek Freak's small-market kingdom",
+    "identity": "Young Kareem (then Lew Alcindor) and Oscar Robertson won a title in the franchise's third season. Fifty years later Giannis Antetokounmpo, a skinny unknown drafted 15th out of Greece, grew into a two-time MVP and scored 50 in the closeout game of the 2021 Finals. Milwaukee is a small market that rarely lands stars any other way.",
+    "legends": ["Giannis Antetokounmpo", "Kareem Abdul-Jabbar", "Oscar Robertson", "Sidney Moncrief", "Ray Allen"],
+    "rivals": ["BOS", "CHI"]
+  },
+  "MIN": {
+    "founded": 1989, "arena": "Target Center",
+    "titles": [],
+    "nickname": "Wolves in the cold",
+    "identity": "Kevin Garnett carried Minnesota for 12 seasons and reached the 2004 Western Conference Finals. Then came a long drought of lottery picks and bad luck. Recently they've become a real threat, making back-to-back Western Conference Finals in 2024 and 2025.",
+    "legends": ["Kevin Garnett", "Kevin Love", "Sam Cassell", "Karl-Anthony Towns"],
+    "rivals": ["DEN", "OKC"]
+  },
+  "NO": {
+    "founded": 2002, "formerly": "New Orleans Hornets", "arena": "Smoothie King Center",
+    "titles": [],
+    "nickname": "Big Easy, big potential, lots of injuries",
+    "identity": "The Hornets moved from Charlotte in 2002 and became the Pelicans in 2013. After Hurricane Katrina they played two seasons mostly in Oklahoma City. Chris Paul and later Anthony Davis were stars who eventually asked to leave. Recent teams have been talented but injury-wrecked.",
+    "legends": ["Chris Paul", "Anthony Davis", "David West", "Jrue Holiday"],
+    "rivals": ["MEM", "HOU"]
+  },
+  "NY": {
+    "founded": 1946, "arena": "Madison Square Garden",
+    "titles": [1970, 1973],
+    "nickname": "The Mecca, long-suffering and loud",
+    "identity": "Willis Reed limping out for Game 7 in 1970 is Knicks lore. Their two titles came in the early '70s. Patrick Ewing's rough '90s teams had famous wars with the Bulls, Pacers and Heat but never won. Then came decades of dysfunction before a revival, including the 2025 Eastern Conference Finals, their first since 2000. MSG is the most famous arena in the sport.",
+    "legends": ["Willis Reed", "Walt Frazier", "Patrick Ewing", "Bernard King", "Carmelo Anthony"],
+    "rivals": ["BOS", "BKN", "MIA", "IND", "CHI"]
+  },
+  "OKC": {
+    "founded": 1967, "formerly": "Seattle SuperSonics", "arena": "Paycom Center",
+    "titles": [1979, 2025],
+    "nickname": "Young, deep and drafted to perfection",
+    "identity": "The franchise moved from Seattle in 2008 (Sonics fans are still angry). Kevin Durant, Russell Westbrook and James Harden were a young dynasty that broke up too soon. GM Sam Presti then stockpiled draft picks and built around Shai Gilgeous-Alexander, winning the 2025 title with one of the youngest championship teams ever. The 1979 title came in Seattle.",
+    "legends": ["Shai Gilgeous-Alexander", "Kevin Durant", "Russell Westbrook", "Gary Payton", "Shawn Kemp"],
+    "rivals": ["DEN", "DAL", "GS"]
+  },
+  "ORL": {
+    "founded": 1989, "arena": "Kia Center",
+    "titles": [],
+    "nickname": "Big men and what-ifs",
+    "identity": "Orlando won the draft lottery twice in a row in the early '90s. Shaq and Penny Hardaway made the 1995 Finals, then Shaq left for LA. Dwight Howard took them to the 2009 Finals. Since then they've been a long-armed, defense-first team built through the draft.",
+    "legends": ["Shaquille O'Neal", "Penny Hardaway", "Dwight Howard", "Tracy McGrady", "Nick Anderson"],
+    "rivals": ["MIA"]
+  },
+  "PHI": {
+    "founded": 1946, "formerly": "Syracuse Nationals", "arena": "Xfinity Mobile Arena",
+    "titles": [1955, 1967, 1983],
+    "nickname": "Trust the Process",
+    "identity": "Wilt Chamberlain's 1967 team and the 'Fo, Fo, Fo' 1983 team (Dr. J and Moses Malone) won titles. Allen Iverson carried them to the 2001 Finals. 'The Process' was a years-long deliberate tank for top draft picks; it produced Joel Embiid, but repeated second-round exits made playoff heartbreak the theme.",
+    "legends": ["Julius Erving", "Allen Iverson", "Wilt Chamberlain", "Moses Malone", "Charles Barkley", "Hal Greer"],
+    "rivals": ["BOS", "NY"]
+  },
+  "PHX": {
+    "founded": 1968, "arena": "Mortgage Matchup Center",
+    "titles": [],
+    "nickname": "Great teams, no ring",
+    "identity": "Possibly the best franchise never to win a title. Finals trips in 1976, 1993 (Barkley's MVP year) and 2021 all ended in losses, and Steve Nash's fast-paced 'Seven Seconds or Less' teams of the mid-2000s never got there. Recent years were an expensive superstar experiment.",
+    "legends": ["Steve Nash", "Charles Barkley", "Amar'e Stoudemire", "Kevin Johnson", "Walter Davis", "Devin Booker"],
+    "rivals": ["LAL", "SA"]
+  },
+  "POR": {
+    "founded": 1970, "arena": "Moda Center",
+    "titles": [1977],
+    "nickname": "Rip City",
+    "identity": "Bill Walton's 1977 title sparked 'Blazermania', and the fans have stayed fiercely loyal since. Clyde Drexler's teams made two Finals in the early '90s. Damian Lillard's long-range buzzer-beaters defined the 2010s. Now in a youth rebuild.",
+    "legends": ["Bill Walton", "Clyde Drexler", "Damian Lillard", "Terry Porter", "Brandon Roy"],
+    "rivals": ["LAL"]
+  },
+  "SAC": {
+    "founded": 1923, "formerly": "Rochester Royals, Cincinnati Royals, Kansas City Kings", "arena": "Golden 1 Center",
+    "titles": [1951],
+    "nickname": "Light the beam",
+    "identity": "The oldest franchise in the league by roots, with a title back in Rochester in 1951. The early-2000s Kings (Webber, Divac, Peja, Bibby) were beautiful to watch and lost a controversial 2002 Western Conference Finals to the Lakers. A record 16-year playoff drought ended in 2023; they light a purple laser beam after every home win.",
+    "legends": ["Oscar Robertson", "Chris Webber", "Peja Stojaković", "Vlade Divac", "Mike Bibby", "Mitch Richmond"],
+    "rivals": ["LAL"]
+  },
+  "SA": {
+    "founded": 1967, "formerly": "Dallas Chaparrals (ABA)", "arena": "Frost Bank Center",
+    "titles": [1999, 2003, 2005, 2007, 2014],
+    "nickname": "Quiet dynasty, now the Wemby era",
+    "identity": "The Spurs won five titles with Tim Duncan and coach Gregg Popovich through steady, unselfish team play and smart international scouting (Manu Ginóbili, Tony Parker). Their 2014 ball movement is still studied. Now they're built around Victor Wembanyama, a 7'4\" French phenom unlike anyone before.",
+    "legends": ["Tim Duncan", "David Robinson", "Manu Ginóbili", "Tony Parker", "George Gervin", "Victor Wembanyama"],
+    "rivals": ["DAL", "LAL", "HOU"]
+  },
+  "TOR": {
+    "founded": 1995, "arena": "Scotiabank Arena",
+    "titles": [2019],
+    "nickname": "We The North",
+    "identity": "The only Canadian team. Vince Carter's dunks put them on the map. The Lowry and DeRozan era made them consistently good, and a one-year trade for Kawhi Leonard won the 2019 title, sealed by his four-bounce buzzer-beater against Philadelphia. The fans and celebrity superfan Drake are famously loud.",
+    "legends": ["Vince Carter", "Kyle Lowry", "DeMar DeRozan", "Kawhi Leonard", "Chris Bosh"],
+    "rivals": ["PHI", "CLE", "BKN"]
+  },
+  "UTAH": {
+    "founded": 1974, "formerly": "New Orleans Jazz", "arena": "Delta Center",
+    "titles": [],
+    "nickname": "Stockton-to-Malone",
+    "identity": "John Stockton and Karl Malone ran the pick-and-roll together for 18 seasons and reached back-to-back Finals in 1997 and 1998, losing both to Jordan's Bulls. The 'Jazz' name made sense in New Orleans and was kept after the move to Salt Lake City. The crowd is one of the loudest in the league.",
+    "legends": ["John Stockton", "Karl Malone", "Jerry Sloan", "Pete Maravich", "Mark Eaton", "Donovan Mitchell"],
+    "rivals": ["CHI", "HOU", "LAL"]
+  },
+  "WSH": {
+    "founded": 1961, "formerly": "Chicago Packers, Baltimore Bullets, Washington Bullets", "arena": "Capital One Arena",
+    "titles": [1978],
+    "nickname": "Rebuilding in the capital",
+    "identity": "The Bullets of Wes Unseld and Elvin Hayes won the 1978 title. The team became the Wizards in 1997, and Michael Jordan came out of retirement to play here (2001–03). John Wall and Bradley Beal's teams never made it past the second round. Now in a full rebuild.",
+    "legends": ["Wes Unseld", "Elvin Hayes", "John Wall", "Gilbert Arenas", "Bradley Beal"],
+    "rivals": ["CLE", "BOS"]
+  }
+}
