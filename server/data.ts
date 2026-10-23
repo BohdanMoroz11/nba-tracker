@@ -3,7 +3,7 @@ import { espn, mapLimit } from "./espn.ts";
 import { rankRoster } from "./importance.ts";
 import lore from "../data/lore.json" with { type: "json" };
 import type {
-  BoxLine, GameCard, GameDetail, GameLogEntry, Injury, LastSeason, Lore, NewsItem,
+  BoxLine, Coach, GameCard, GameDetail, GameLogEntry, Injury, LastSeason, Lore, NewsItem,
   PlayerDetail, RecentResult, RosterPlayer, StatLine, TeamDetail, TeamRef, TeamStatRow,
 } from "../shared/types.ts";
 
@@ -11,6 +11,16 @@ const num = (v: unknown) => {
   const n = parseFloat(String(v));
   return Number.isFinite(n) ? n : 0;
 };
+
+// ESPN gives US units ("6' 9\"", "243 lbs"); the owner thinks in metric.
+function cm(display?: string) {
+  const m = display?.match(/(\d+)'\s*(\d+)?/);
+  return m ? `${Math.round((+m[1] * 12 + +(m[2] ?? 0)) * 2.54)} cm` : undefined;
+}
+function kg(display?: string) {
+  const lbs = parseFloat(display ?? "");
+  return lbs ? `${Math.round(lbs * 0.4536)} kg` : undefined;
+}
 
 function logoOf(t: any): string {
   return t.logo ?? t.logos?.find((l: any) => l.rel?.includes("default"))?.href ?? t.logos?.[0]?.href ?? "";
@@ -64,7 +74,6 @@ function cardFromCompetition(id: string, comp: any): GameCard {
     clock: st.displayClock,
     venue: comp.venue?.fullName,
     city: comp.venue?.address?.city,
-    broadcasts: (comp.broadcasts ?? []).flatMap((b: any) => b.names ?? (b.media?.shortName ? [b.media.shortName] : [])),
     odds: comp.odds?.[0]?.details,
     away: competitorRef(away),
     home: competitorRef(home),
@@ -335,8 +344,8 @@ function toRosterPlayer(a: any, seasons: StatLine[], ov: any, currentLabel: stri
     positionName: a.position?.displayName ?? "",
     headshot: a.headshot?.href,
     age: a.age,
-    height: a.displayHeight,
-    weight: a.displayWeight,
+    height: cm(a.displayHeight),
+    weight: kg(a.displayWeight),
     experience: a.experience?.years ?? 0,
     college: a.college?.name,
     salary: a.contract?.salary || undefined,
@@ -346,6 +355,27 @@ function toRosterPlayer(a: any, seasons: StatLine[], ov: any, currentLabel: stri
     note: ov?.rotowire?.headline,
     current: seasonLine(seasons, currentLabel),
     last: seasonLine(seasons, lastLabel),
+  };
+}
+
+async function coachFor(c: any, year: number): Promise<Coach | undefined> {
+  if (!c) return undefined;
+  const id = String(c.id);
+  const [bio, reg, post] = await Promise.all([
+    espn.coach(id, year).catch(() => null),
+    espn.coachRecord(id, 2).catch(() => null),
+    espn.coachRecord(id, 3).catch(() => null),
+  ]);
+  const wl = (r: any) => r?.summary?.replace(/-0$/, "");
+  const dob = bio?.dateOfBirth ? new Date(bio.dateOfBirth) : undefined;
+  return {
+    id,
+    name: `${c.firstName} ${c.lastName}`,
+    headshot: bio?.headshot?.href,
+    age: dob ? Math.floor((Date.now() - dob.getTime()) / (365.25 * 864e5)) : undefined,
+    seasonsBefore: num(c.experience),
+    record: wl(reg),
+    playoffRecord: wl(post),
   };
 }
 
@@ -386,7 +416,7 @@ export async function getTeam(teamId: string): Promise<TeamDetail> {
     season: currentLabel,
     standing: t.standingSummary?.replace(/(Conference) Division$/, "$1"),
     conference,
-    coach: roster.coach?.[0] ? `${roster.coach[0].firstName} ${roster.coach[0].lastName}` : undefined,
+    coach: await coachFor(roster.coach?.[0], currentYear),
     record: overall?.summary,
     streak: streak ? (streak > 0 ? `W${streak}` : `L${-streak}`) : undefined,
     lastSeason,
@@ -439,8 +469,8 @@ export async function getPlayer(id: string): Promise<PlayerDetail> {
     dob: a.displayDOB,
     birthPlace: a.displayBirthPlace,
     citizenship: a.citizenship,
-    height: a.displayHeight,
-    weight: a.displayWeight,
+    height: cm(a.displayHeight),
+    weight: kg(a.displayWeight),
     draft: a.displayDraft,
     debutYear: a.debutYear,
     experience: a.displayExperience,

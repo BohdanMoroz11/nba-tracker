@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { GameDetail, Injury, PlayerDetail, RosterPlayer, StatLine, TeamDetail } from "../../../shared/types";
 import { accent, money, one, tierLabel, tint, usePlayer } from "../lib";
-import { ErrorNote, Headshot, InjuryPill, Modal, Segmented, Spinner } from "./ui";
+import { ErrorNote, Headshot, InjuryPill, Modal, Segmented, Spinner, Term } from "./ui";
+import { tip } from "../glossary";
 
 interface Props {
   playerId: string;
@@ -54,7 +55,7 @@ export function PlayerModal({ playerId, game, teams, onClose }: Props) {
             </div>
             <div className="flex flex-wrap items-center gap-2 px-4 pt-3">
               {rp && <span className="rounded-full px-2 py-px text-xs font-semibold text-court" style={{ background: color }}>{tierLabel[rp.tier]}</span>}
-              {rp && <span className="text-xs text-mute">importance {rp.importance}/100</span>}
+              {rp && <Term k="importance" className="text-xs text-mute">importance {rp.importance}/100</Term>}
               <InjuryPill status={injury?.status ?? rp?.injuryStatus} small />
             </div>
             <div className="hidden px-4 py-3 @2xl:block">
@@ -76,7 +77,7 @@ export function PlayerModal({ playerId, game, teams, onClose }: Props) {
                   {p.news.map((n) => (
                     <li key={n.headline}>
                       <a href={n.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{n.headline}</a>
-                      {n.description && <div className="line-clamp-1 text-sm text-mute">{n.description}</div>}
+                      {n.description && <div className="line-clamp-1 text-sm text-mute" data-tip={n.description} data-tip-overflow>{n.description}</div>}
                     </li>
                   ))}
                 </ul>
@@ -104,7 +105,8 @@ function Overview({ p, rp, injury, game }: { p: PlayerDetail; rp?: RosterPlayer;
         <div className="rounded-lg border border-live/40 bg-live/10 p-3 text-sm tnum">
           {box.didNotPlay ? "Didn't play in this game." : (
             <>
-              <b className="text-live">{game.state === "in" ? "Live" : "This game"}</b> {box.pts} pts, {box.reb} reb, {box.ast} ast, FG {box.fg}, 3PT {box.threes}, {box.min} min, {box.plusMinus} +/-
+              <b className="text-live">{game.state === "in" ? "Live" : "This game"}</b> {box.pts} pts, {box.reb} reb, {box.ast} ast,{" "}
+              <Term k="madeAttempted">FG {box.fg}, 3PT {box.threes}</Term>, {box.min} min, <Term k="plusMinus">{box.plusMinus} +/-</Term>
               {box.starter ? ", started" : ", off the bench"}
             </>
           )}
@@ -115,7 +117,7 @@ function Overview({ p, rp, injury, game }: { p: PlayerDetail; rp?: RosterPlayer;
         <div>
           <h3 className={label}>Latest</h3>
           <p className="font-medium">{p.latestNote.headline}</p>
-          {p.latestNote.story && <p className="mt-1 line-clamp-4 text-sm leading-relaxed text-ink/80" title={p.latestNote.story}>{p.latestNote.story}</p>}
+          {p.latestNote.story && <p className="mt-1 line-clamp-4 text-sm leading-relaxed text-ink/80" data-tip={p.latestNote.story} data-tip-overflow>{p.latestNote.story}</p>}
         </div>
       )}
 
@@ -124,7 +126,7 @@ function Overview({ p, rp, injury, game }: { p: PlayerDetail; rp?: RosterPlayer;
           <h3 className={label}>Honors</h3>
           <ul className="flex flex-wrap gap-1.5">
             {p.awards.map((a) => (
-              <li key={a.name} className="rounded-md border border-line bg-panel px-2 py-0.5 text-sm" title={a.seasons.join(", ")}>
+              <li key={a.name} className="rounded-md border border-line bg-panel px-2 py-0.5 text-sm" data-tip-title={a.name} data-tip={a.seasons.length ? `Seasons: ${a.seasons.join(", ")}` : undefined}>
                 <b className="tnum">{a.count}</b> {a.name}
               </li>
             ))}
@@ -164,20 +166,20 @@ function Facts({ p, rp }: { p: PlayerDetail; rp?: RosterPlayer }) {
   const contract = rp?.salary
     ? `${money(rp.salary)} this season${rp.contractYearsLeft ? `, ${rp.contractYearsLeft} more yr${rp.contractYearsLeft > 1 ? "s" : ""} after` : ""}`
     : undefined;
-  const items: [string, string | number | undefined][] = [
+  const items: [string, string | number | undefined, string?][] = [
     ["Age", p.age && `${p.age}${p.dob ? ` (born ${p.dob})` : ""}`],
     ["Size", [p.height, p.weight].filter(Boolean).join(", ")],
     ["From", [p.birthPlace, p.citizenship && p.citizenship !== "USA" && !p.birthPlace?.includes(p.citizenship) ? p.citizenship : undefined].filter(Boolean).join(", ")],
     ["College", p.college],
-    ["Draft", p.draft ?? "Undrafted"],
-    ["Experience", p.experience],
+    ["Draft", p.draft ?? "Undrafted", "draft"],
+    ["Experience", p.experience, "experience"],
     ["Contract", contract],
   ];
   return (
     <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm @2xl:grid-cols-1">
-      {items.filter(([, v]) => v).map(([k, v]) => (
+      {items.filter(([, v]) => v).map(([k, v, t]) => (
         <div key={k} className="min-w-0 @2xl:grid @2xl:grid-cols-[80px_1fr] @2xl:gap-2">
-          <dt className="text-xs text-mute @2xl:pt-0.5">{k}</dt>
+          <dt className="text-xs text-mute @2xl:pt-0.5">{t ? <Term k={t}>{k}</Term> : k}</dt>
           <dd className="font-medium leading-snug">{v}</dd>
         </div>
       ))}
@@ -189,14 +191,14 @@ function SeasonTable({ seasons, career }: { seasons: StatLine[]; career?: StatLi
   const [all, setAll] = useState(false);
   const rows = [...seasons].reverse();
   const shown = all ? rows : rows.slice(0, 9);
-  const cols: [string, (s: StatLine) => string][] = [
-    ["GP", (s) => String(s.gp)],
-    ["MIN", (s) => one(s.min)],
-    ["PTS", (s) => one(s.pts)],
-    ["REB", (s) => one(s.reb)],
-    ["AST", (s) => one(s.ast)],
-    ["FG%", (s) => one(s.fgPct)],
-    ["3P%", (s) => one(s.threePct)],
+  const cols: [string, (s: StatLine) => string, string][] = [
+    ["GP", (s) => String(s.gp), "gp"],
+    ["MIN", (s) => one(s.min), "min"],
+    ["PTS", (s) => one(s.pts), "pts"],
+    ["REB", (s) => one(s.reb), "reb"],
+    ["AST", (s) => one(s.ast), "ast"],
+    ["FG%", (s) => one(s.fgPct), "fg"],
+    ["3P%", (s) => one(s.threePct), "3p"],
   ];
   if (!seasons.length) return <p className="text-mute">No NBA games yet.</p>;
   return (
@@ -205,7 +207,7 @@ function SeasonTable({ seasons, career }: { seasons: StatLine[]; career?: StatLi
         <thead className="text-xs text-mute">
           <tr>
             <th className="py-1 text-left font-normal">Season, per game</th>
-            {cols.map(([c]) => <th key={c} className="text-right font-normal">{c}</th>)}
+            {cols.map(([c, , t]) => <th key={c} className="text-right font-normal"><Term k={t}>{c}</Term></th>)}
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
@@ -238,7 +240,9 @@ function RecentGames({ p }: { p: PlayerDetail }) {
       <thead className="text-xs text-mute">
         <tr className="text-left">
           <th className="py-1 font-normal">Date</th><th className="font-normal">Opp</th><th className="font-normal">Result</th>
-          <th className="text-right font-normal">MIN</th><th className="text-right font-normal">PTS</th><th className="text-right font-normal">REB</th><th className="text-right font-normal">AST</th>
+          {(["min", "pts", "reb", "ast"] as const).map((k) => (
+            <th key={k} className="text-right font-normal"><span className="explain" {...tip(k)}>{k.toUpperCase()}</span></th>
+          ))}
         </tr>
       </thead>
       <tbody className="divide-y divide-line">

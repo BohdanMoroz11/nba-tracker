@@ -89,3 +89,27 @@ body {
 .modal-in {
   animation: modal-in 160ms ease-out;
 }
+
+/* Glossary terms: a quiet hint that hovering explains them. */
+.explain {
+  cursor: help;
+  text-decoration: underline dotted;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  text-underline-offset: 3px;
+}
+.explain:focus-visible {
+  outline-offset: 1px;
+}
+
+/* Live updates: a changed number glows in the team color, then fades back. */
+@keyframes flash {
+  0%,
+  20% {
+    background: color-mix(in srgb, var(--team, #4ade80) 40%, transparent);
+    color: #fff;
+  }
+}
+.flash {
+  animation: flash 2.5s ease-out;
+  border-radius: 4px;
+}

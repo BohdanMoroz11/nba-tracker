@@ -58,7 +58,7 @@ function GameRow({ game }: { game: GameCard }) {
         )}
         <div className="mt-0.5 flex items-center justify-center gap-1.5 text-xs text-mute">
           {state === "in" && <span className="live-dot size-1.5 rounded-full bg-live" />}
-          {state === "pre" ? game.broadcasts[0] ?? "" : game.statusText}
+          {state === "pre" ? "" : game.statusText}
         </div>
       </div>
       <Side team={home} right />

@@ -1,5 +1,94 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { injuryTone } from "../lib";
+import { tip } from "../glossary";
+
+// ---------- tooltips ----------
+// One listener for the whole app: any element with data-tip shows a tooltip on hover or keyboard focus.
+// data-tip-title adds a heading. data-tip-overflow shows it only when the element's text is cut off,
+// which is how truncated summaries reveal their full text.
+
+type TipState = { title?: string; body: string; rect: DOMRect };
+
+const cutOff = (el: HTMLElement) => el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1;
+
+export function Tooltips() {
+  const [t, setT] = useState<TipState | null>(null);
+  useEffect(() => {
+    let current: HTMLElement | null = null;
+    let timer: number | undefined;
+    const hide = () => {
+      current = null;
+      clearTimeout(timer);
+      setT(null);
+    };
+    const over = (e: Event) => {
+      const el = (e.target as Element | null)?.closest?.<HTMLElement>("[data-tip]") ?? null;
+      if (el === current) return;
+      hide();
+      if (!el || !el.dataset.tip) return;
+      if ("tipOverflow" in el.dataset && !cutOff(el)) return;
+      current = el;
+      timer = window.setTimeout(() => setT({ title: el.dataset.tipTitle, body: el.dataset.tip!, rect: el.getBoundingClientRect() }), e.type === "focusin" ? 0 : 180);
+    };
+    const out = (e: MouseEvent) => !e.relatedTarget && hide();
+    document.addEventListener("mouseover", over);
+    document.addEventListener("focusin", over);
+    document.addEventListener("mouseout", out);
+    document.addEventListener("pointerdown", hide);
+    window.addEventListener("scroll", hide, true);
+    window.addEventListener("hashchange", hide);
+    return () => {
+      document.removeEventListener("mouseover", over);
+      document.removeEventListener("focusin", over);
+      document.removeEventListener("mouseout", out);
+      document.removeEventListener("pointerdown", hide);
+      window.removeEventListener("scroll", hide, true);
+      window.removeEventListener("hashchange", hide);
+    };
+  }, []);
+  return t ? createPortal(<TipBox {...t} />, document.body) : null;
+}
+
+function TipBox({ title, body, rect }: TipState) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  useLayoutEffect(() => {
+    const box = ref.current!.getBoundingClientRect();
+    const gap = 6;
+    const above = rect.top - box.height - gap;
+    const top = above >= 8 ? above : Math.min(rect.bottom + gap, innerHeight - box.height - 8);
+    const left = Math.max(8, Math.min(rect.left + rect.width / 2 - box.width / 2, innerWidth - box.width - 8));
+    setPos({ left, top });
+  }, [rect]);
+  return (
+    <div
+      ref={ref}
+      role="tooltip"
+      className="pointer-events-none fixed z-[60] max-w-[min(340px,calc(100vw-16px))] whitespace-pre-line rounded-lg border border-line bg-panel-2 px-3 py-2 text-[13px] leading-snug text-ink/90 shadow-xl"
+      style={pos ?? { left: 0, top: 0, visibility: "hidden" }}
+    >
+      {title && <div className="mb-0.5 font-semibold text-ink">{title}</div>}
+      {body}
+    </div>
+  );
+}
+
+/** A glossary term: dotted underline, explainer on hover. */
+export function Term({ k, extra, className = "", children }: { k: string; extra?: string; className?: string; children: ReactNode }) {
+  return <span {...tip(k, extra)} tabIndex={0} className={`explain ${className}`}>{children}</span>;
+}
+
+/** Briefly highlights its content when the value changes within the same scope (a live update), never on first render. */
+export function Flash({ value, scope, className = "", children }: { value?: string; scope: string; className?: string; children?: ReactNode }) {
+  const prev = useRef({ value, scope });
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (prev.current.value !== value && prev.current.scope === scope && value) setN((x) => x + 1);
+    prev.current = { value, scope };
+  }, [value, scope]);
+  return <span key={n} className={`${n ? "flash" : ""} ${className}`}>{children ?? value}</span>;
+}
 
 export function SectionTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   return (
@@ -62,7 +151,7 @@ export function ErrorNote({ error, what }: { error: unknown; what: string }) {
 
 export function ImportanceBar({ value, color }: { value: number; color: string }) {
   return (
-    <div className="h-1 w-full overflow-hidden rounded-full bg-line" title={`Importance ${value}/100 (minutes, production, role, salary)`}>
+    <div className="h-1 w-full overflow-hidden rounded-full bg-line" {...tip("importance", `${value}/100`)}>
       <div className="h-full rounded-full" style={{ width: `${Math.max(value, 3)}%`, background: color }} />
     </div>
   );

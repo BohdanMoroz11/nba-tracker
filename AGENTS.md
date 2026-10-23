@@ -34,10 +34,11 @@ shared/types.ts  API response types
 data/lore.json   Hand-written team history keyed by ESPN abbreviation (BOS, GS, NY, UTAH, WSH, ...)
 web/src/
   lib.ts         Query hooks, hash router, formatting, team-color helpers
+  glossary.ts    Plain-language explainers for every stat/term, shown as hover tooltips
   styles.css     Design tokens (Tailwind @theme) and the few custom classes
   components/    GamesPage, GamePage (header + layout), TeamPanel (team strip + fit-to-height roster),
                  MatchupPanel (preview, team stat comparison, last 5, odds), TeamModal, PlayerModal,
-                 ui (Modal, Segmented, pills...)
+                 ui (Tooltips layer, Term, Flash, Modal, Segmented, pills...)
 docs/data-sources.md  ESPN endpoints we use and what's in them
 ```
 
@@ -53,6 +54,9 @@ docs/data-sources.md  ESPN endpoints we use and what's in them
 - Traded players: ESPN's stats have one row per team plus a combined row with no teamId; we label it `TOT` and prefer it for season lines.
 - Per-player honors ("4× MVP, 21× All-NBA", `honorsSummary`) and the latest Rotowire one-liner come from each player's `/overview`, fetched with the roster. ESPN has no All-Star selections.
 - Team stat comparison: ESPN core API `/seasons/{y}/types/2/teams/{id}/statistics` (has league ranks); points allowed and margin are ranked from standings. Uses last season until the team has 10 games.
+- Heights and weights are converted to metric on the server (`cm()`/`kg()`); the owner isn't American. Don't show US units.
+- Coach: name from the roster, headshot from core `/seasons/{y}/coaches/{id}`, career records from core `/coaches/{id}/record/2` (regular season) and `/3` (playoffs). `experience` = completed seasons as head coach. ESPN lacks birth dates for some coaches.
+- TV broadcasts are deliberately not shown (US channels mean nothing to the owner).
 - Caching: scoreboard and live summary 15 s, team/news 30 min, roster and player stats 6 h, last-season data 24 h. All in memory, so a restart clears it.
 
 ## Design
@@ -71,6 +75,9 @@ Direction: "broadcast tale of the tape". Dark arena base (`#0F1622`), each team 
   - Modals may scroll internally as a last resort on phones; desktop sizes are designed to fit.
 - **Responsive via container queries** (`@container`, `@4xl:` etc.), not just viewport breakpoints, because the app often lives in a narrow side window. Below `@4xl` the game page shows one team at a time with a switcher; above it, the two teams sit side by side. Check at 1440×820, 1280×720, 480×860 and 390×760.
 - Copy: plain sentence case, explain things for a casual fan, no jargon without context.
+- **Explain every stat.** The owner is learning the game: every stat label and basketball term gets a hover explainer from `glossary.ts` (what it is, what counts as good). Use `<Term k="...">` (dotted underline) or `{...tip("key")}`. New stat or term = new glossary entry.
+- **Tooltips**: one app-wide `<Tooltips />` layer reads `data-tip` / `data-tip-title` attributes. Add `data-tip-overflow` to truncated or line-clamped text so the full text shows on hover only when it's actually cut off. Don't use native `title=`.
+- **Live updates**: the game polls every 15 s while live; `<Flash value scope>` briefly glows a number in the team color when it changes (score, box score cells). The header shows "updated Xs ago".
 
 ## Conventions
 

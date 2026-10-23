@@ -25,7 +25,6 @@ export interface GameCard {
   clock?: string;
   venue?: string;
   city?: string;
-  broadcasts: string[];
   odds?: string; // "PHI -2.5"
   away: TeamRef;
   home: TeamRef;
@@ -107,8 +106,8 @@ export interface RosterPlayer {
   positionName: string;
   headshot?: string;
   age?: number;
-  height?: string;
-  weight?: string;
+  height?: string; // metric, "206 cm"
+  weight?: string; // "110 kg"
   experience: number; // years in league
   college?: string;
   salary?: number;
@@ -149,12 +148,22 @@ export interface Lore {
   rivals: string[];
 }
 
+export interface Coach {
+  id: string;
+  name: string;
+  headshot?: string;
+  age?: number;
+  seasonsBefore: number; // completed seasons as an NBA head coach
+  record?: string; // career regular season, "258-254"
+  playoffRecord?: string;
+}
+
 export interface TeamDetail {
   team: TeamRef;
   season: string; // current season label, "2026-27"
   standing?: string; // "3rd in Atlantic Division"
   conference?: string;
-  coach?: string;
+  coach?: Coach;
   record?: string;
   streak?: string;
   lastSeason?: LastSeason;
@@ -194,8 +203,8 @@ export interface PlayerDetail {
   dob?: string;
   birthPlace?: string;
   citizenship?: string;
-  height?: string;
-  weight?: string;
+  height?: string; // metric, "206 cm"
+  weight?: string; // "110 kg"
   draft?: string; // "2017: Rd 1, Pk 3 (BOS)"
   debutYear?: number;
   experience?: string; // "10th Season"

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import type { BoxLine, GameDetail, Injury, RosterPlayer, StatLine, TeamDetail, Tier } from "../../../shared/types";
-import { accent, injuryTone, money, one, tint, useHeight, type StatMode } from "../lib";
+import { accent, injuryTone, money, one, ordinal, tint, useHeight, type StatMode } from "../lib";
 import { TeamModal } from "./TeamModal";
-import { Headshot, InjuryPill, Modal } from "./ui";
+import { Flash, Headshot, InjuryPill, Modal, Term } from "./ui";
+import { statusMeaning, tip } from "../glossary";
 
 interface Props {
   team: TeamDetail;
@@ -25,33 +26,33 @@ export function TeamPanel({ team, game, mode }: Props) {
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-2">
             <h2 className="truncate font-display text-2xl font-black leading-tight">{team.team.displayName}</h2>
-            <span className="hidden shrink-0 rounded-full px-2 py-px text-xs font-semibold text-court @md:inline" style={{ background: color }} title={team.outlook.reason}>
+            <span className="hidden shrink-0 rounded-full px-2 py-px text-xs font-semibold text-court @md:inline" style={{ background: color }} {...tip("outlook", team.outlook.reason)}>
               {team.outlook.label}
             </span>
           </div>
-          <p className="truncate text-xs text-mute" title={`${team.standing ?? ""}. Last season: ${ls?.record ?? ""}, ${ls?.playoffs ?? ""}`}>
-            <span className="text-ink">{team.record}</span>
-            {team.standing && `, ${team.standing.replace(" Division", "")}`}
+          <p className="truncate text-xs text-mute" data-tip={stripText(team)} data-tip-overflow>
+            <Term k="record" className="text-ink">{team.record}</Term>
+            {team.standing && <>, <Term k="standing">{team.standing.replace(" Division", "")}</Term></>}
+            {team.coach && (
+              <>
+                <span className="text-ink/40"> | </span>coach <Term k="coach" extra={coachText(team.coach)} className="text-ink">{team.coach.name}</Term>
+              </>
+            )}
             {ls?.record && (
               <>
                 <span className="text-ink/40"> | </span>
                 last season <span className="text-ink">{ls.record}</span>, {ls.playoffs?.replace(/^Lost in /, "out in ")}
               </>
             )}
-            {team.coach && (
-              <span className="hidden @3xl:inline">
-                <span className="text-ink/40"> | </span>coach <span className="text-ink">{team.coach}</span>
-              </span>
-            )}
           </p>
         </div>
         {form.length > 0 && (
           <div className="hidden shrink-0 items-center gap-1 @2xl:flex" aria-label="Last 5 games">
-            <span className="mr-1 text-xs text-mute">Last 5</span>
+            <Term k="last5" className="mr-1 text-xs text-mute">Last 5</Term>
             {form.map((g) => (
               <span
                 key={g.date}
-                title={`${g.result} ${g.atVs} ${g.opponent} ${g.score}, ${new Date(g.date).toLocaleDateString([], { month: "short", day: "numeric" })}`}
+                data-tip={`${g.result === "W" ? "Won" : "Lost"} ${g.atVs} ${g.opponent} ${g.score}, ${new Date(g.date).toLocaleDateString([], { month: "short", day: "numeric" })}`}
                 className={`grid size-5 place-items-center rounded text-[11px] font-bold ${g.result === "W" ? "bg-live/20 text-live" : "bg-out/20 text-out"}`}
               >
                 {g.result}
@@ -69,6 +70,23 @@ export function TeamPanel({ team, game, mode }: Props) {
       {about && <TeamModal team={team} injuries={injuries} onClose={() => setAbout(false)} />}
     </section>
   );
+}
+
+function coachText(c: NonNullable<TeamDetail["coach"]>) {
+  return [
+    `${c.name}${c.age ? `, ${c.age}` : ""}.`,
+    c.seasonsBefore ? `${ordinal(c.seasonsBefore + 1)} season as an NBA head coach.` : "First season as an NBA head coach.",
+    c.record && `Career record ${c.record}${c.playoffRecord && c.playoffRecord !== "0-0" ? `, ${c.playoffRecord} in the playoffs` : ""}.`,
+  ].filter(Boolean).join(" ");
+}
+
+function stripText(team: TeamDetail) {
+  const ls = team.lastSeason;
+  return [
+    `${team.record}${team.standing ? `, ${team.standing}` : ""}.`,
+    team.coach && `Coach ${team.coach.name}.`,
+    ls?.record && `Last season ${ls.record}, ${ls.playoffs ?? ""}.`,
+  ].filter(Boolean).join("\n");
 }
 
 // ---------- roster that fits its box ----------
@@ -137,17 +155,24 @@ const GRID = [
   "@3xl:grid-cols-[2.25rem_2.5rem_minmax(0,1fr)_repeat(9,2.3rem)_3.5rem]",
 ].join(" ");
 
-const COLS: { key: string; label: string; show: string; title: string }[] = [
-  { key: "gp", label: "GP", show: "hidden @2xl:block", title: "Games played" },
-  { key: "min", label: "MIN", show: "hidden @md:block", title: "Minutes per game" },
-  { key: "pts", label: "PTS", show: "", title: "Points per game" },
-  { key: "reb", label: "REB", show: "", title: "Rebounds per game" },
-  { key: "ast", label: "AST", show: "", title: "Assists per game" },
-  { key: "stl", label: "STL", show: "hidden @3xl:block", title: "Steals per game" },
-  { key: "blk", label: "BLK", show: "hidden @3xl:block", title: "Blocks per game" },
-  { key: "fg", label: "FG%", show: "hidden @2xl:block", title: "Field goal percentage" },
-  { key: "3p", label: "3P%", show: "hidden @2xl:block", title: "3-point percentage" },
+// Keys double as glossary keys for the header explainers.
+const COLS: { key: string; label: string; show: string }[] = [
+  { key: "gp", label: "GP", show: "hidden @2xl:block" },
+  { key: "min", label: "MIN", show: "hidden @md:block" },
+  { key: "pts", label: "PTS", show: "" },
+  { key: "reb", label: "REB", show: "" },
+  { key: "ast", label: "AST", show: "" },
+  { key: "stl", label: "STL", show: "hidden @3xl:block" },
+  { key: "blk", label: "BLK", show: "hidden @3xl:block" },
+  { key: "fg", label: "FG%", show: "hidden @2xl:block" },
+  { key: "3p", label: "3P%", show: "hidden @2xl:block" },
 ];
+
+const MODE_NOTE: Record<StatMode, string> = {
+  last: "Showing per-game averages from last season.",
+  current: "Showing per-game averages from this season.",
+  tonight: "Showing this game's totals.",
+};
 
 function RosterTable({ team, game, mode, injuries, color, bg }: TableProps) {
   const [ref, height] = useHeight<HTMLDivElement>();
@@ -163,13 +188,15 @@ function RosterTable({ team, game, mode, injuries, color, bg }: TableProps) {
       {height > 0 && (
         <>
           <div className={`${GRID} px-2 text-[11px] text-mute`} style={{ height: HEAD_H }}>
-            <span className="text-right">#</span>
+            <span className="text-right"><Term k="jersey">#</Term></span>
             <span />
             <span>Player</span>
             {COLS.map((c) => (
-              <span key={c.key} className={`text-right ${c.show}`} title={c.title}>{c.label}</span>
+              <span key={c.key} className={`text-right ${c.show}`}>
+                <Term k={c.key} extra={c.key === "gp" || c.key === "salary" ? undefined : MODE_NOTE[mode]}>{c.label}</Term>
+              </span>
             ))}
-            <span className="hidden text-right @xl:block">Salary</span>
+            <span className="hidden text-right @xl:block"><Term k="salary">Salary</Term></span>
           </div>
           {GROUPS.map(([tier, label]) => {
             const ps = visible.filter((p) => p.tier === tier);
@@ -177,7 +204,7 @@ function RosterTable({ team, game, mode, injuries, color, bg }: TableProps) {
             return (
               <div key={tier}>
                 <div className="flex items-end border-t border-line px-2 pb-0.5 text-[11px] font-semibold text-mute" style={{ height: GROUP_H }}>
-                  {label}
+                  <Term k={tier}>{label}</Term>
                 </div>
                 {ps.map((p) => row(p, scale, density))}
               </div>
@@ -246,7 +273,7 @@ function PlayerRow({ p, game, mode, injury, color, bg, height, rich }: RowProps)
   const injuryText = injury && [injury.status, [injury.side, injury.type, injury.detail?.toLowerCase()].filter(Boolean).join(" ")].filter(Boolean).join(": ");
   const main = new Set(["pts", "reb", "ast"]);
   const big = star ? "font-display text-lg font-bold @md:text-xl" : "text-sm";
-  const meta = [p.positionName, p.age && `age ${p.age}`, p.height?.replace(" ", ""), p.experience ? `${p.experience} yrs pro` : "rookie"].filter(Boolean).join(", ");
+  const meta = [p.positionName, p.age && `age ${p.age}`, p.height, p.experience ? `${p.experience} yrs pro` : "rookie"].filter(Boolean).join(", ");
 
   return (
     <a
@@ -266,33 +293,33 @@ function PlayerRow({ p, game, mode, injury, color, bg, height, rich }: RowProps)
           </span>
           {!star && <span className="hidden shrink-0 text-xs text-mute @lg:inline">{p.position}</span>}
           {status && (
-            <span className="shrink-0" title={injuryText || status}>
+            <span className="shrink-0" data-tip-title={status} data-tip={[injuryText && injuryText !== status ? injuryText.replace(`${status}: `, "") : "", statusMeaning(status)].filter(Boolean).join("\n\n") || status}>
               <span className="hidden @lg:inline"><InjuryPill status={status} small /></span>
               <span className={`inline-block size-2 rounded-full @lg:hidden ${injuryTone(status) === "out" ? "bg-out" : "bg-doubt"}`} aria-label={status} />
             </span>
           )}
-          {c.note && <span className="shrink-0 text-xs text-mute">{c.note}</span>}
-          {!star && p.honors && <span className="hidden min-w-0 truncate text-xs text-doubt/90 @lg:inline" title={p.honors}>{p.honors}</span>}
+          {c.note && (c.note === "Rookie" ? <Term k="rookie" className="shrink-0 text-xs text-mute">{c.note}</Term> : <span className="shrink-0 text-xs text-mute">{c.note}</span>)}
+          {!star && p.honors && <span className="hidden min-w-0 truncate text-xs text-doubt/90 @lg:inline" data-tip-title="Honors" data-tip={p.honors} data-tip-overflow>{p.honors}</span>}
         </div>
         {star && (
-          <div className="truncate text-xs text-ink/70">
+          <div className="truncate text-xs text-ink/70" data-tip={`${meta}${p.honors ? `\n${p.honors}` : ""}`} data-tip-overflow>
             {meta}
             {p.honors && <span className="text-doubt/90">, {p.honors}</span>}
           </div>
         )}
         {rich && (star || key) && p.note && (
-          <div className={`text-xs italic text-mute ${star ? "line-clamp-2" : "truncate"}`} title={p.note}>
+          <div className={`text-xs italic text-mute ${star ? "line-clamp-2" : "truncate"}`} data-tip-title="Latest note" data-tip={p.note} data-tip-overflow>
             {p.note}
           </div>
         )}
       </div>
       {COLS.map((col) => (
-        <span
+        <Flash
           key={col.key}
+          value={c[col.key]}
+          scope={mode}
           className={`text-right tnum ${col.show} ${main.has(col.key) ? big : "text-sm text-mute"} ${col.key === "pts" ? "font-semibold" : ""}`}
-        >
-          {c[col.key]}
-        </span>
+        />
       ))}
       <span className="hidden text-right text-xs tnum text-mute @xl:block">{money(p.salary) ?? ""}</span>
     </a>

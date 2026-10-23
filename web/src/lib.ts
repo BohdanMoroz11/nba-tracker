@@ -24,7 +24,7 @@ export const useGame = (id: string) =>
   useQuery({
     queryKey: ["game", id],
     queryFn: () => get<GameDetail>(`/api/game/${id}`),
-    refetchInterval: (q) => (q.state.data?.state === "in" ? 20_000 : 5 * 60_000),
+    refetchInterval: (q) => (q.state.data?.state === "in" ? 15_000 : 5 * 60_000),
   });
 
 export const useTeam = (id?: string) =>

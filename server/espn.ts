@@ -61,6 +61,9 @@ export const espn = {
   athlete: (id: string) => getJson(`${ATHLETE}/${id}`, TTL.long),
   athleteStats: (id: string) => getJson(`${ATHLETE}/${id}/stats`, TTL.long),
   athleteOverview: (id: string) => getJson(`${ATHLETE}/${id}/overview`, TTL.medium),
+  coach: (coachId: string, seasonYear: number) => getJson(`${CORE}/seasons/${seasonYear}/coaches/${coachId}`, TTL.day),
+  // Career records: 2 = regular season, 3 = playoffs.
+  coachRecord: (coachId: string, type: 2 | 3) => getJson(`${CORE}/coaches/${coachId}/record/${type}`, TTL.day),
   teamStats: (teamId: string, seasonYear: number) =>
     getJson(`${CORE}/seasons/${seasonYear}/types/2/teams/${teamId}/statistics`, TTL.long),
 };
