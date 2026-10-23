@@ -19,7 +19,8 @@ const cache = new Map<string, Entry>();
 
 export async function getJson<T = any>(url: string, ttl: number): Promise<T> {
   const hit = cache.get(url);
-  if (hit && Date.now() - hit.at < hit.ttl) return hit.value;
+  // The caller's TTL counts too: the same URL can be wanted fresher than it was first cached for.
+  if (hit && Date.now() - hit.at < Math.min(hit.ttl, ttl)) return hit.value;
   const value = fetch(url, { headers: { "User-Agent": "nba-tracker (personal project)" } }).then(async (r) => {
     if (!r.ok) throw new Error(`ESPN ${r.status} for ${url}`);
     return r.json();
@@ -50,7 +51,8 @@ export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) =>
 
 export const espn = {
   scoreboard: (date?: string) => getJson(`${SITE}/scoreboard${date ? `?dates=${date}` : ""}`, TTL.live),
-  summary: (eventId: string, live: boolean) => getJson(`${SITE}/summary?event=${eventId}`, live ? TTL.live : TTL.short),
+  // Always short: the browser decides how often to ask (fast while live, slow otherwise).
+  summary: (eventId: string) => getJson(`${SITE}/summary?event=${eventId}`, TTL.live),
   team: (teamId: string) => getJson(`${SITE}/teams/${teamId}`, TTL.medium),
   roster: (teamId: string) => getJson(`${SITE}/teams/${teamId}/roster`, TTL.long),
   teamNews: (teamId: string) => getJson(`${SITE}/news?team=${teamId}&limit=8`, TTL.medium),

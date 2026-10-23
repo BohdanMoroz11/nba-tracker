@@ -57,7 +57,7 @@ docs/data-sources.md  ESPN endpoints we use and what's in them
 - Heights and weights are converted to metric on the server (`cm()`/`kg()`); the owner isn't American. Don't show US units.
 - Coach: name from the roster, headshot from core `/seasons/{y}/coaches/{id}`, career records from core `/coaches/{id}/record/2` (regular season) and `/3` (playoffs). `experience` = completed seasons as head coach. ESPN lacks birth dates for some coaches.
 - TV broadcasts are deliberately not shown (US channels mean nothing to the owner).
-- Caching: scoreboard and live summary 15 s, team/news 30 min, roster and player stats 6 h, last-season data 24 h. All in memory, so a restart clears it.
+- Caching: scoreboard and game summary 15 s (the browser decides how often to poll: 15 s live, 30 s near tip-off, 5 min otherwise); `getJson` honors the shorter of the stored and requested TTL, team/news 30 min, roster and player stats 6 h, last-season data 24 h. All in memory, so a restart clears it.
 
 ## Design
 

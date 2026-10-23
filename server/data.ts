@@ -98,9 +98,7 @@ export async function getGames(date?: string): Promise<{ date: string; games: Ga
 }
 
 export async function getGame(id: string): Promise<GameDetail> {
-  // First fetch decides the cache TTL: live games refresh every few seconds, others are cached longer.
-  let s = await espn.summary(id, false);
-  if (s.header?.competitions?.[0]?.status?.type?.state === "in") s = await espn.summary(id, true);
+  const s = await espn.summary(id);
   const comp = s.header.competitions[0];
   const card = cardFromCompetition(id, { ...comp, venue: s.gameInfo?.venue });
 

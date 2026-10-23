@@ -24,7 +24,13 @@ export const useGame = (id: string) =>
   useQuery({
     queryKey: ["game", id],
     queryFn: () => get<GameDetail>(`/api/game/${id}`),
-    refetchInterval: (q) => (q.state.data?.state === "in" ? 15_000 : 5 * 60_000),
+    refetchInterval: (q) => {
+      const g = q.state.data;
+      if (g?.state === "in") return 15_000;
+      // Around tip-off, check often so the switch to live isn't missed.
+      if (g?.state === "pre" && Date.parse(g.date) - Date.now() < 15 * 60_000) return 30_000;
+      return 5 * 60_000;
+    },
   });
 
 export const useTeam = (id?: string) =>
