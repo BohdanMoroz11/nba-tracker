@@ -2,6 +2,8 @@
 
 > ⚡ Vibe coded: agents wrote it, I steered and vibe-checked some code. Maintained to the standard of "works on my machine". Pure vibes.
 
+<img width="1560" height="784" alt="image" src="https://github.com/user-attachments/assets/0307cc7c-1752-4acb-aace-f95a3bec77f0" />
+
 A personal second-screen app for watching NBA games. Pick tonight's game and get a one-screen dashboard (no scrolling) with:
 
 - **Header**: score or tip-off time in your timezone, live status (refreshes every 15 s, changed numbers glow briefly, "updated Xs ago"), ESPN's win probability, betting favorite, season series.
